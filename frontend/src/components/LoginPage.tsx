@@ -36,6 +36,7 @@ const LoginPage: React.FC = () => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${credentialResponse.credential}`
             },
             body: JSON.stringify(userData),
           });
