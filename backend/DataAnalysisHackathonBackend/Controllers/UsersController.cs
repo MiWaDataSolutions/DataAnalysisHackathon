@@ -14,6 +14,11 @@ namespace DataAnalysisHackathonBackend.Controllers
     {
         private readonly ILogger<UsersController> _logger;
 
+        // Placeholder for a database of seen Google IDs.
+        // IMPORTANT: This is for demonstration purposes only and will reset with application restarts.
+        // In a production environment, this would be replaced by a persistent database.
+        private static HashSet<string> _seenGoogleIds = new HashSet<string>();
+
         public UsersController(ILogger<UsersController> logger)
         {
             _logger = logger;
@@ -60,14 +65,35 @@ namespace DataAnalysisHackathonBackend.Controllers
 
             _logger.LogInformation("Processed login for GoogleID: {GoogleId} with details from body: Name: {Name}", googleId, responseUser.Name);
 
-            // In a real application, you would:
-            // 1. Query your database using 'googleId' from the token.
-            // 2. If user exists, update Name (userRequestBody.Name) and ProfilePictureUrl (userRequestBody.ProfilePictureUrl) if provided.
-            // 3. If user does not exist, create a new user record with googleId, email (from token),
-            //    and Name/ProfilePictureUrl from userRequestBody.
-            // 4. Return appropriate response (e.g., User details, session token if using separate backend sessions).
+            bool isFirstLoginToApp;
+            lock (_seenGoogleIds)
+            {
+                if (!_seenGoogleIds.Contains(googleId))
+                {
+                    isFirstLoginToApp = true;
+                    _seenGoogleIds.Add(googleId);
+                    _logger.LogInformation("First-time login to application for GoogleID: {GoogleId}. Added to in-memory store.", googleId);
+                    // In a real app, this is where you'd save the new user to the database.
+                }
+                else
+                {
+                    isFirstLoginToApp = false;
+                    _logger.LogInformation("Returning user login to application for GoogleID: {GoogleId}. Found in in-memory store.", googleId);
+                }
+            }
 
-            return Ok(new { Message = "Login data processed successfully with token authorization.", User = responseUser });
+            // In a real application, you would:
+            // 1. Query your database using 'googleId' from the token. The 'isFirstLoginToApp' logic would be based on this DB query.
+            // 2. If user exists (isFirstLoginToApp == false), update Name (userRequestBody.Name) and ProfilePictureUrl (userRequestBody.ProfilePictureUrl) if provided.
+            // 3. If user does not exist (isFirstLoginToApp == true), create a new user record with googleId, email (from token),
+            //    and Name/ProfilePictureUrl from userRequestBody.
+            // 4. Return appropriate response.
+
+            return Ok(new {
+                Message = isFirstLoginToApp ? "First-time login successful." : "Returning user login successful.",
+                User = responseUser,
+                IsFirstLoginToApp = isFirstLoginToApp
+            });
         }
     }
 }

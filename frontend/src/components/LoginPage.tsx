@@ -17,49 +17,47 @@ const LoginPage: React.FC = () => {
   const handleLoginSuccess = async (credentialResponse: CredentialResponse) => {
     if (credentialResponse.credential) {
       try {
-        const decodedToken = jwt_decode<DecodedToken>(credentialResponse.credential);
-        console.log('Login Success (raw token):', decodedToken);
+        const decodedToken = jwt_decode<DecodedToken>(credentialResponse.credential); // Still useful for immediate UI, or could be removed if all info comes from backend User object
+        console.log('Login Success (Google token decoded):', decodedToken);
 
-        const firstLoginKey = `hasLoggedInBefore_${decodedToken.sub}`;
-        const hasUserLoggedInBefore = localStorage.getItem(firstLoginKey) === 'true';
+        // Prepare user data for the body, primarily for Name and ProfilePictureUrl
+        // GoogleId and Email will be primarily taken from the token by the backend
+        const userRequestBody = {
+          googleId: decodedToken.sub, // Can be sent for completeness or backend cross-check
+          email: decodedToken.email, // Can be sent for completeness
+          name: decodedToken.name,
+          profilePictureUrl: decodedToken.picture,
+        };
 
-        if (!hasUserLoggedInBefore) {
-          console.log('First time login for user:', decodedToken.email);
-          const userData = {
-            googleId: decodedToken.sub,
-            email: decodedToken.email,
-            name: decodedToken.name,
-            profilePictureUrl: decodedToken.picture,
-          };
+        const response = await fetch('/api/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${credentialResponse.credential}`
+          },
+          body: JSON.stringify(userRequestBody),
+        });
 
-          const response = await fetch('/api/users/login', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${credentialResponse.credential}`
-            },
-            body: JSON.stringify(userData),
-          });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Backend call successful. Response data:', data);
 
-          if (response.ok) {
-            console.log('Backend call successful for first-time login.');
-            localStorage.setItem(firstLoginKey, 'true');
-            localStorage.setItem('isLoggedIn', 'true');
-            alert(`Login Successful! Welcome, ${decodedToken.name}`);
-            navigate('/');
+          // Use isFirstLoginToApp from backend response
+          if (data.isFirstLoginToApp) {
+            alert(`Welcome, ${data.User.Name}! This is your first login to our app.`);
           } else {
-            const errorText = await response.text();
-            console.error('Backend call failed for first-time login:', errorText);
-            alert(`Could not finalize your first login with the server. Error: ${errorText}. Please try again.`);
-            // Do NOT set isLoggedIn to true and do NOT navigate
-            return;
+            alert(`Welcome back, ${data.User.Name}!`);
           }
-        } else {
-          // Not a first-time login, proceed as usual
-          console.log('Returning user:', decodedToken.email);
+
           localStorage.setItem('isLoggedIn', 'true');
-          alert(`Welcome back, ${decodedToken.name}!`);
           navigate('/');
+        } else {
+          // Backend call failed
+          const errorText = await response.text();
+          console.error('Backend call failed:', errorText);
+          alert(`Login failed with the server. Error: ${errorText}. Please try again.`);
+          // Do NOT set isLoggedIn to true and do NOT navigate
+          return;
         }
       } catch (error) {
         console.error('Error during login process:', error);
