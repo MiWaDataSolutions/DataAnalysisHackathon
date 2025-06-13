@@ -36,80 +36,111 @@ namespace DataAnalysisHackathonBackend.Controllers
         /// <param name="userRequestBody">User profile details like Name and ProfilePictureUrl.
         /// GoogleId and Email from this body are secondary to token claims.</param>
         /// <returns>An object containing login status, user details, and a flag indicating if it's a first login.</returns>
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] User userRequestBody)
+        // [HttpPost("login")] // This endpoint is now redundant due to OnCreatingTicket handling user provisioning.
+        // public async Task<IActionResult> Login([FromBody] User userRequestBody)
+        // {
+        //     var googleId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //     var email = User.FindFirstValue(ClaimTypes.Email);
+
+        //     if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
+        //     {
+        //         _logger.LogWarning("User identifier (GoogleId) or Email not found in token.");
+        //         return BadRequest("User identifier or email not found in token.");
+        //     }
+
+        //     _logger.LogInformation("User login attempt via token: GoogleID: {GoogleId}, Email: {Email}", googleId, email);
+
+        //     // Validate userRequestBody if necessary, though [ApiController] handles basic model validation.
+        //     // For example, if Name is mandatory from body even if token is present.
+        //     if (userRequestBody == null || string.IsNullOrEmpty(userRequestBody.Name))
+        //     {
+        //          _logger.LogWarning("Request body is null or missing Name for GoogleID: {GoogleId}", googleId);
+        //          // Depending on requirements, you might return BadRequest here if Name is critical from body.
+        //          // For this example, we'll allow it but Name might be null in the DB if not provided.
+        //     }
+
+        //     bool isFirstLoginToApp;
+        //     var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.GoogleId == googleId);
+
+        //     if (existingUser == null)
+        //     {
+        //         isFirstLoginToApp = true;
+        //         _logger.LogInformation("First-time login to application for GoogleID: {GoogleId}. Creating new user.", googleId);
+
+        //         User newUser = new User
+        //         {
+        //             GoogleId = googleId,
+        //             Email = email, // From token
+        //             Name = userRequestBody?.Name ?? "User", // Default name if not provided in body
+        //             ProfilePictureUrl = userRequestBody?.ProfilePictureUrl ?? string.Empty, // From request body
+        //             CreatedAtUtc = DateTime.UtcNow
+        //         };
+        //         _context.Users.Add(newUser);
+        //     }
+        //     else
+        //     {
+        //         isFirstLoginToApp = false;
+        //         _logger.LogInformation("Returning user login to application for GoogleID: {GoogleId}. User found in DB.", googleId);
+        //         // Optionally, update existingUser details here if needed, e.g., Name, ProfilePictureUrl, LastLoginAtUtc
+        //         // existingUser.Name = userRequestBody?.Name ?? existingUser.Name;
+        //         // existingUser.ProfilePictureUrl = userRequestBody?.ProfilePictureUrl ?? existingUser.ProfilePictureUrl;
+        //         // _context.Users.Update(existingUser); // Mark as modified if changes are made
+        //     }
+
+        //     try
+        //     {
+        //         await _context.SaveChangesAsync();
+        //     }
+        //     catch (DbUpdateException ex)
+        //     {
+        //         _logger.LogError(ex, "Error saving changes to the database for GoogleID: {GoogleId}.", googleId);
+        //         return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while saving user data.");
+        //     }
+
+        //     var responseUser = new
+        //     {
+        //         GoogleId = googleId,
+        //         Email = email,
+        //         Name = userRequestBody?.Name ?? (existingUser?.Name ?? "User"), // Use name from body, then existing, then default
+        //         ProfilePictureUrl = userRequestBody?.ProfilePictureUrl ?? (existingUser?.ProfilePictureUrl ?? string.Empty)
+        //     };
+
+        //     return Ok(new {
+        //         Message = isFirstLoginToApp ? "First-time login successful. User created." : "Returning user login successful.",
+        //         User = responseUser,
+        //         IsFirstLoginToApp = isFirstLoginToApp
+        //     });
+        // }
+
+        [HttpGet("me")]
+        [Authorize] // Ensures only authenticated (via cookie) users can access
+        public IActionResult GetMe()
         {
-            var googleId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var email = User.FindFirstValue(ClaimTypes.Email);
-
-            if (string.IsNullOrEmpty(googleId) || string.IsNullOrEmpty(email))
+            if (User?.Identity?.IsAuthenticated == true)
             {
-                _logger.LogWarning("User identifier (GoogleId) or Email not found in token.");
-                return BadRequest("User identifier or email not found in token.");
+                var googleId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                var name = User.FindFirstValue(ClaimTypes.Name);
+                var picture = User.FindFirstValue("urn:google:picture") ?? User.FindFirstValue("picture");
+
+                _logger.LogInformation("User {GoogleId} requested their details via /me endpoint.", googleId);
+
+                return Ok(new {
+                    IsAuthenticated = true,
+                    User = new {
+                        GoogleId = googleId,
+                        Email = email,
+                        Name = name,
+                        ProfilePictureUrl = picture
+                    }
+                });
             }
 
-            _logger.LogInformation("User login attempt via token: GoogleID: {GoogleId}, Email: {Email}", googleId, email);
-
-            // Validate userRequestBody if necessary, though [ApiController] handles basic model validation.
-            // For example, if Name is mandatory from body even if token is present.
-            if (userRequestBody == null || string.IsNullOrEmpty(userRequestBody.Name))
-            {
-                 _logger.LogWarning("Request body is null or missing Name for GoogleID: {GoogleId}", googleId);
-                 // Depending on requirements, you might return BadRequest here if Name is critical from body.
-                 // For this example, we'll allow it but Name might be null in the DB if not provided.
-            }
-
-            bool isFirstLoginToApp;
-            var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.GoogleId == googleId);
-
-            if (existingUser == null)
-            {
-                isFirstLoginToApp = true;
-                _logger.LogInformation("First-time login to application for GoogleID: {GoogleId}. Creating new user.", googleId);
-
-                User newUser = new User
-                {
-                    GoogleId = googleId,
-                    Email = email, // From token
-                    Name = userRequestBody?.Name ?? "User", // Default name if not provided in body
-                    ProfilePictureUrl = userRequestBody?.ProfilePictureUrl ?? string.Empty, // From request body
-                    CreatedAtUtc = DateTime.UtcNow
-                };
-                _context.Users.Add(newUser);
-            }
-            else
-            {
-                isFirstLoginToApp = false;
-                _logger.LogInformation("Returning user login to application for GoogleID: {GoogleId}. User found in DB.", googleId);
-                // Optionally, update existingUser details here if needed, e.g., Name, ProfilePictureUrl, LastLoginAtUtc
-                // existingUser.Name = userRequestBody?.Name ?? existingUser.Name;
-                // existingUser.ProfilePictureUrl = userRequestBody?.ProfilePictureUrl ?? existingUser.ProfilePictureUrl;
-                // _context.Users.Update(existingUser); // Mark as modified if changes are made
-            }
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Error saving changes to the database for GoogleID: {GoogleId}.", googleId);
-                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while saving user data.");
-            }
-
-            var responseUser = new
-            {
-                GoogleId = googleId,
-                Email = email,
-                Name = userRequestBody?.Name ?? (existingUser?.Name ?? "User"), // Use name from body, then existing, then default
-                ProfilePictureUrl = userRequestBody?.ProfilePictureUrl ?? (existingUser?.ProfilePictureUrl ?? string.Empty)
-            };
-
-            return Ok(new {
-                Message = isFirstLoginToApp ? "First-time login successful. User created." : "Returning user login successful.",
-                User = responseUser,
-                IsFirstLoginToApp = isFirstLoginToApp
-            });
+            // This part should ideally not be reached if [Authorize] is effective and
+            // the default challenge scheme redirects to login or returns 401.
+            // However, explicitly returning Unauthorized if User.Identity is somehow not authenticated.
+            _logger.LogWarning("/me endpoint reached by unauthenticated user despite [Authorize] attribute.");
+            return Unauthorized(new { IsAuthenticated = false });
         }
     }
 }
