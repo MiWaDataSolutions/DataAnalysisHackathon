@@ -4,3 +4,5 @@ backend/.vs/
 backend/DataAnalysisHackathonBackend/obj/
 
 backend/DataAnalysisHackathonBackend/bin/
+
+frontend/.env.development

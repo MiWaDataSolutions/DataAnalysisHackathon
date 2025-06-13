@@ -1,16 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-export interface AuthUser { // Exporting for use in other components if needed
-  GoogleId: string;
-  Email: string;
-  Name: string;
-  ProfilePictureUrl?: string;
-}
+import { useGetMe } from '@/hooks/data-analyst-api/user.query';
+import type { MeDto, MeUserDto } from '@/shared/api/data-analyst-api';
+import { createContext, useContext, useState, useEffect, type ReactNode, useMemo } from 'react';
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  user: AuthUser | null;
-  isLoading: boolean;
+  data: {
+    userData: MeDto | undefined;
+    userIsLoading: boolean;
+  };
   checkAuthStatus: () => Promise<void>;
 }
 
@@ -18,46 +14,49 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [user, setUser] = useState<MeUserDto | null>(null);
+  const { data: userData, error: userError, isLoading: userIsLoading, refetch: userRefetch } = useGetMe();
 
   const checkAuthStatus = async () => {
-    setIsLoading(true);
     try {
-      const response = await fetch('/api/users/me'); // Relies on Vite proxy
-      if (response.ok) {
-        const data = await response.json();
-        if (data.isAuthenticated && data.User) {
+      const response = await userRefetch(); // Relies on Vite proxy
+      if (response.isSuccess) {
+        if (userData?.isAuthenticated && userData.user) {
           setIsAuthenticated(true);
-          setUser(data.User);
-          // localStorage.setItem('isLoggedIn', 'true'); // No longer needed with httpOnly cookie
+          setUser(userData.user);
         } else {
           setIsAuthenticated(false);
           setUser(null);
-          // localStorage.removeItem('isLoggedIn'); // No longer needed
         }
       } else {
         // response.status === 401 often means not authenticated
         setIsAuthenticated(false);
         setUser(null);
-        // localStorage.removeItem('isLoggedIn'); // No longer needed
       }
     } catch (error) {
       console.error("Error checking auth status:", error);
       setIsAuthenticated(false);
       setUser(null);
-      // localStorage.removeItem('isLoggedIn'); // No longer needed
-    } finally {
-      setIsLoading(false);
-    }
+    } 
   };
 
   useEffect(() => {
     checkAuthStatus();
   }, []); // Runs once on mount
+  
+  const contextValue = useMemo(
+    () => ({
+      data: {
+        userData,
+        userIsLoading
+      },
+      checkAuthStatus,
+    }),
+    [userData, userIsLoading, checkAuthStatus]
+  );
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, isLoading, checkAuthStatus }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

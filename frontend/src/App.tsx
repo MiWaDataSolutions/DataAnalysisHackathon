@@ -3,24 +3,20 @@ import reactLogo from './assets/react.svg';
 import viteLogo from '/vite.svg';
 import './App.css';
 import { useAuth } from './context/AuthContext'; // Assuming path to AuthContext
+import { useLogout } from './hooks/data-analyst-api/auth.query';
 
 function App() {
   const [count, setCount] = useState(0);
-  const { isAuthenticated, user, checkAuthStatus } = useAuth();
+  const { data: userData, checkAuthStatus } = useAuth();
+  const { mutateAsync: logoutAsync } = useLogout();
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/auth/logout', { // Matches backend route
-        method: 'POST',
-        headers: {
-          // No specific CSRF token handling for this example, but needed in prod if backend uses it
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) {
+      const response = await logoutAsync();
+      if (response?.raw.ok) {
         console.log("Logout successful on backend.");
       } else {
-        console.error("Backend logout failed.", await response.text());
+        console.error("Backend logout failed.", await response?.raw.text());
       }
     } catch (error) {
       console.error("Error during logout fetch:", error);
@@ -32,17 +28,17 @@ function App() {
 
   return (
     <>
-      {isAuthenticated && user && (
+      {userData.userData?.isAuthenticated && userData.userData.user && (
         <div style={{ position: 'absolute', top: '10px', right: '10px', textAlign: 'right', border: '1px solid #ccc', padding: '10px', borderRadius: '5px', backgroundColor: '#f9f9f9' }}>
-          <p style={{ margin: 0, fontWeight: 'bold' }}>Welcome, {user.Name || 'User'}!</p>
-          {user.ProfilePictureUrl && (
+          <p style={{ margin: 0, fontWeight: 'bold' }}>Welcome, {userData.userData.user.name || 'User'}!</p>
+          {userData.userData.user.profilePictureUrl && (
             <img
-              src={user.ProfilePictureUrl}
+              src={userData.userData.user.profilePictureUrl}
               alt="Profile"
               style={{ width: '40px', height: '40px', borderRadius: '50%', margin: '5px 0' }}
             />
           )}
-          <p style={{ fontSize: '0.8em', margin: '0 0 10px 0' }}>({user.Email})</p>
+          <p style={{ fontSize: '0.8em', margin: '0 0 10px 0' }}>({userData.userData.user.email})</p>
           <button
             onClick={handleLogout}
             style={{
@@ -69,7 +65,7 @@ function App() {
         </a>
       </div>
       <h1>Vite + React</h1>
-      <h2>Welcome to the App! {isAuthenticated ? "(Authenticated)" : "(Not Authenticated)"}</h2>
+      <h2>Welcome to the App! {userData?.userData?.isAuthenticated ? "(Authenticated)" : "(Not Authenticated)"}</h2>
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}

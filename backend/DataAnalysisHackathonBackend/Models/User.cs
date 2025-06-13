@@ -39,5 +39,16 @@ namespace DataAnalysisHackathonBackend.Models
         /// Gets or sets the UTC date and time when this user record was created in the database.
         /// </summary>
         public DateTime CreatedAtUtc { get; set; }
+
+
+        /// <summary>
+        /// Gets or sets the UTC date and time when this user record was updated in the database
+        /// </summary>
+        public DateTime LastLoginAtUtc { get; set; }
+
+        /// <summary>
+        /// Gets or sets the users database conenction string
+        /// </summary>
+        public string UserDatabaseConnectionString { get; set; }
     }
 }

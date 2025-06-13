@@ -1,7 +1,4 @@
 using Microsoft.AspNetCore.Authentication.Cookies; // Added
-using Microsoft.AspNetCore.Authentication.Google; // Added
-// using Microsoft.AspNetCore.Authentication.JwtBearer; // Commented out/Removed
-// using Microsoft.IdentityModel.Tokens; // Commented out/Removed (related to JWT Bearer)
 using Microsoft.EntityFrameworkCore;
 using DataAnalysisHackathonBackend.Data;
 using DataAnalysisHackathonBackend.Models; // Added for User model
@@ -9,29 +6,21 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Security.Claims; // Added for ClaimTypes
 using Microsoft.AspNetCore.Authentication.OAuth; // Added for OAuthEvents
-using Microsoft.Extensions.Logging; // Added for ILoggerFactory
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-// Comment out or remove old JWT Bearer authentication if it was solely for direct Google ID token validation
-/*
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = "https://accounts.google.com";
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = "https://accounts.google.com",
-            ValidateAudience = true,
-            ValidAudience = builder.Configuration["Google:ClientId"],
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-        };
-    });
-*/
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:5173")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                      });
+});
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -98,21 +87,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 {
                     logger.LogInformation("Returning Google login for ID: {GoogleId}. Email: {Email}. User found.", googleId, email);
                     // Optional: Update user properties if needed, e.g., last login time or profile picture if changed.
-                    // existingUser.ProfilePictureUrl = picture ?? existingUser.ProfilePictureUrl; // Example update
-                    // existingUser.LastLoginAtUtc = DateTime.UtcNow; // If you have such a field
-                    // if(dbContext.Entry(existingUser).State != EntityState.Unchanged) // Check if there were changes
-                    // {
-                    //    await dbContext.SaveChangesAsync();
-                    // }
+                     existingUser.ProfilePictureUrl = picture ?? existingUser.ProfilePictureUrl; // Example update
+                     existingUser.LastLoginAtUtc = DateTime.UtcNow; // If you have such a field
+                    if (dbContext.Entry(existingUser).State != EntityState.Unchanged) // Check if there were changes
+                    {
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
                 // The context.Principal is what gets serialized into the cookie.
                 // If you need to add custom claims to your application's cookie from here, you can modify context.Principal.Identity.
             }
         };
     });
-
-// using Microsoft.OpenApi.Models; // Moved to top
-// using System.Reflection; // Moved to top
 
 builder.Services.AddAuthorization(); // Ensure Authorization services are added
 
@@ -126,8 +112,8 @@ builder.Services.AddSwaggerGen(options =>
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
-        Title = "Data Analysis Hackathon API",
-        Description = "API for the Data Analysis Hackathon project."
+        Title = "Data Analyst API",
+        Description = "API for the Data Analyst project."
     });
 
     // Configure XML comments
@@ -172,6 +158,7 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Data Analysis Hackathon API v1");
     });
 }
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseHttpsRedirection();
 

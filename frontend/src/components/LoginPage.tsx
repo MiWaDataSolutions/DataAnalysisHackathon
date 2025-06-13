@@ -9,7 +9,8 @@ const LoginPage: React.FC = () => {
     // Redirect to the backend endpoint that starts the Google OAuth flow.
     // The backend will handle the OAuth dance and then redirect the user back to the frontend (e.g., to '/' or a specific dashboard page)
     // after establishing a session cookie.
-    window.location.href = "/auth/google-login";
+    const redirectUrl = encodeURIComponent(`${window.location.origin}/`);
+    window.location.href = `https://localhost:7103/auth/google-login?redirectUrl=${redirectUrl}`;
   };
 
   // Removed handleLoginSuccess and handleLoginError methods from the old flow
