@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using DataAnalysisHackathonBackend.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,9 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 
 builder.Services.AddAuthorization(); // Ensure Authorization services are added
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
 

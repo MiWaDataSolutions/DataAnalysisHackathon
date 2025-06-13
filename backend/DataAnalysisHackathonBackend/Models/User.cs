@@ -9,8 +9,9 @@ namespace DataAnalysisHackathonBackend.Models
     {
         /// <summary>
         /// Gets or sets the user's unique Google identifier.
-        /// This is primarily validated from the token claims on the backend.
+        /// This is primarily validated from the token claims on the backend and serves as the Primary Key.
         /// </summary>
+        [Key] // Designate GoogleId as the primary key
         [Required]
         public string GoogleId { get; set; } = string.Empty;
 
@@ -33,5 +34,10 @@ namespace DataAnalysisHackathonBackend.Models
         /// Gets or sets the URL of the user's profile picture. Optional.
         /// </summary>
         public string ProfilePictureUrl { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the UTC date and time when this user record was created in the database.
+        /// </summary>
+        public DateTime CreatedAtUtc { get; set; }
     }
 }
