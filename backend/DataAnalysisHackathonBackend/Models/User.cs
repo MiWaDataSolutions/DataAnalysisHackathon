@@ -49,6 +49,6 @@ namespace DataAnalysisHackathonBackend.Models
         /// <summary>
         /// Gets or sets the users database conenction string
         /// </summary>
-        public string UserDatabaseConnectionString { get; set; }
+        public string? UserDatabaseConnectionString { get; set; }
     }
 }

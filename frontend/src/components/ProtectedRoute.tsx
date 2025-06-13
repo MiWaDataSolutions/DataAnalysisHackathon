@@ -6,7 +6,7 @@ interface ProtectedRouteProps {
   children: React.ReactElement;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
@@ -23,7 +23,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  return children; // Render the children (e.g., the App component)
+  return <>{children}</>; // Render the children (e.g., the App component)
 };
 
 export default ProtectedRoute;

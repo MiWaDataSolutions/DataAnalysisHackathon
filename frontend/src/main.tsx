@@ -28,13 +28,10 @@ createRoot(document.getElementById('root')!).render(
           {/* Optional: Redirect logged-in users from /login to / */}
           <Route
             path="/login-redirect"
-              element={ // This specific redirect logic might need re-evaluation with AuthContext
-                        // For now, keeping it, but ProtectedRoute will handle most cases.
-                localStorage.getItem('isLoggedIn') === 'true' ? ( // This localStorage check is now outdated
+            element={
+              <ProtectedRoute>
                 <Navigate to="/" replace />
-              ) : (
-                <LoginPage />
-              )
+              </ProtectedRoute>
             }
           />
           {/* Optional: Default fallback if no other route matches */}
