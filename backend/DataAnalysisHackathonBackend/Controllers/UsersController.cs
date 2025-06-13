@@ -7,6 +7,9 @@ using System.Security.Claims;
 
 namespace DataAnalysisHackathonBackend.Controllers
 {
+    /// <summary>
+    /// Manages user login and processes user-related information.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize] // Protect all actions in this controller
@@ -24,6 +27,14 @@ namespace DataAnalysisHackathonBackend.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Processes user login using Google ID token.
+        /// Retrieves user identity from the token and additional profile details from the request body.
+        /// Determines if it's the user's first login to the application.
+        /// </summary>
+        /// <param name="userRequestBody">User profile details like Name and ProfilePictureUrl.
+        /// GoogleId and Email from this body are secondary to token claims.</param>
+        /// <returns>An object containing login status, user details, and a flag indicating if it's a first login.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] User userRequestBody) // Renamed to avoid confusion with User claims
         {

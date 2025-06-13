@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate-api": "openapi-typescript-codegen --input http://localhost:5000/swagger/v1/swagger.json --output ./src/shared/api/generated --client axios"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.3",
@@ -32,6 +33,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "openapi-typescript-codegen": "^0.29.0",
     "tw-animate-css": "^1.3.4",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
