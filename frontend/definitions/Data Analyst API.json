@@ -1,0 +1,128 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Data Analyst API",
+    "description": "API for the Data Analyst project.",
+    "version": "v1"
+  },
+  "paths": {
+    "/auth/google-login": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "parameters": [
+          {
+            "name": "redirectUrl",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Users/me": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "MeDto": {
+        "type": "object",
+        "properties": {
+          "isAuthenticated": {
+            "type": "boolean",
+            "description": "Whether the user is authenticate or not"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MeUserDto"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MeUserDto": {
+        "type": "object",
+        "properties": {
+          "googleId": {
+            "type": "string",
+            "description": "The user's Google Id",
+            "nullable": true
+          },
+          "email": {
+            "type": "string",
+            "description": "The user's email address",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "description": "The user's name",
+            "nullable": true
+          },
+          "profilePictureUrl": {
+            "type": "string",
+            "description": "The user's profile picture",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        "scheme": "Bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": [ ]
+    }
+  ]
+}

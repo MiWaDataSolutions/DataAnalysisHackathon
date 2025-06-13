@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/@openapitools/openapi-generator-cli/config.schema.json",
+  "spaces": 2,
+  "generator-cli": {
+    "version": "7.8.0",
+    "generators": {
+      "v3.0": {
+        "generatorName": "typescript-fetch", 
+        "output": "./src/shared/api/data-analyst-api",
+        "inputSpec": "./definitions/Data Analyst API.json",
+        "skipValidateSpec": true,
+        "additionalProperties": {
+          "supportsES6": true,
+          "useSingleRequestParameter": true,
+          "modelPropertyNaming": "camelCase",
+          "paramNaming": "camelCase"
+        }
+      }
+    }
+  }
+}
