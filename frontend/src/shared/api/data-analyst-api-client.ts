@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { AuthApi, UsersApi } from "./data-analyst-api/apis";
-import { Configuration } from "./data-analyst-api";
+import { AuthApi, DataSessionApi, UsersApi } from "./data-analyst-api/apis";
+import { Configuration, type DataSession } from "./data-analyst-api";
 
 export const useAuthApi = () => {
     const [apiClient, setApiClient] = useState<AuthApi | null>(null);
@@ -29,6 +29,23 @@ export const useUserApi = () => {
         });
 
         setApiClient(new UsersApi(config));
+    }, []);
+
+    return apiClient;
+}
+
+export const useDataSessionApi = () => {
+    const [apiClient, setApiClient] = useState<DataSessionApi>();
+
+
+    // 3. Create the API client when the token changes
+    useEffect(() => {
+        let config = new Configuration({
+            basePath: import.meta.env.VITE_DATA_ANALYST_API_URL,
+            credentials: 'include'
+        });
+
+        setApiClient(new DataSessionApi(config));
     }, []);
 
     return apiClient;

@@ -62,7 +62,7 @@ namespace DataAnalysisHackathonBackend.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(201)]
+        [ProducesResponseType(201, Type = typeof(string))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> CreateDataSession([FromBody] DataSession dataSession)

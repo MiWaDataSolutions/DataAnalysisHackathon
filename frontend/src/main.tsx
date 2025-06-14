@@ -8,37 +8,51 @@ import LoginPage from './components/LoginPage.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import { AuthProvider } from './context/AuthContext.tsx'; // Added
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { DrawerProvider } from './providers/drawer-provider.tsx';
+import { CustomDrawer } from './components/custom-components/drawer.tsx';
+import { DataSession } from './pages/DataSession.tsx';
 
 const queryClient = new QueryClient();
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider> {/* Wrapped with AuthProvider */}
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <App />
-              </ProtectedRoute>
-            }
-          />
-          {/* Optional: Redirect logged-in users from /login to / */}
-          <Route
-            path="/login-redirect"
-            element={
-              <ProtectedRoute>
-                <Navigate to="/" replace />
-              </ProtectedRoute>
-            }
-          />
-          {/* Optional: Default fallback if no other route matches */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+        <DrawerProvider>
+          <BrowserRouter>
+            <CustomDrawer />
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <App />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path='/data-sessions/:dataSessionId'
+              element={
+                <ProtectedRoute>
+                  <DataSession />
+                </ProtectedRoute>
+              }
+            />
+            {/* Optional: Redirect logged-in users from /login to / */}
+            <Route
+              path="/login-redirect"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/" replace />
+                </ProtectedRoute>
+              }
+            />
+            {/* Optional: Default fallback if no other route matches */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </DrawerProvider>
       </AuthProvider>
     </QueryClientProvider>
-  </StrictMode>,
+  </StrictMode>
 );

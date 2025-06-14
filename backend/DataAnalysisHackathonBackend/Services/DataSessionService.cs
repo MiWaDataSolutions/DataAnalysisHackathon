@@ -19,6 +19,7 @@ namespace DataAnalysisHackathonBackend.Services
         {
             if (await _context.Users.AnyAsync(o => o.GoogleId == userId))
             {
+                dataSession.User = null;
                 dataSession.UserId = userId;
                 await _context.DataSessions.AddAsync(dataSession);
                 await _context.SaveChangesAsync();
