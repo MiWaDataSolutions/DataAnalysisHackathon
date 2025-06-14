@@ -16,7 +16,7 @@
 import * as runtime from '../runtime';
 
 export interface AuthGoogleLoginGetRequest {
-    redirectUrl?: string;
+    returnUrl?: string;
 }
 
 /**
@@ -29,8 +29,8 @@ export class AuthApi extends runtime.BaseAPI {
     async authGoogleLoginGetRaw(requestParameters: AuthGoogleLoginGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
         const queryParameters: any = {};
 
-        if (requestParameters['redirectUrl'] != null) {
-            queryParameters['redirectUrl'] = requestParameters['redirectUrl'];
+        if (requestParameters['returnUrl'] != null) {
+            queryParameters['returnUrl'] = requestParameters['returnUrl'];
         }
 
         const headerParameters: runtime.HTTPHeaders = {};

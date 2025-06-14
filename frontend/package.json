@@ -11,18 +11,21 @@
     "generate:api": "openapi-generator-cli generate"
   },
   "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.14",
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.8",
     "@tanstack/react-query": "^5.80.7",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "jwt-decode": "^4.0.0",
-    "lucide-react": "^0.513.0",
+    "lucide-react": "^0.515.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^6.25.1",
     "tailwind-merge": "^3.3.0",
-    "tailwindcss": "^4.1.8"
+    "tailwindcss": "^4.1.8",
+    "usehooks-ts": "^3.1.1",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
     "@openapitools/openapi-generator-cli": "^2.20.2",

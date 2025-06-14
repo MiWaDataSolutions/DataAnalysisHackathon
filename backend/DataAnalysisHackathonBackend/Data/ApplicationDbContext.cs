@@ -11,6 +11,7 @@ namespace DataAnalysisHackathonBackend.Data
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<DataSession> DataSessions { get; set; }
 
         // Optional: Override OnModelCreating for further configuration if needed in the future
         // protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -5,7 +5,9 @@ using DataAnalysisHackathonBackend.Models; // Added for User model
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Security.Claims; // Added for ClaimTypes
-using Microsoft.AspNetCore.Authentication.OAuth; // Added for OAuthEvents
+using Microsoft.AspNetCore.Authentication.OAuth;
+using DataAnalysisHackathonBackend.Interfaces.Services;
+using DataAnalysisHackathonBackend.Services; // Added for OAuthEvents
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -169,6 +171,9 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Add Services
+builder.Services.AddTransient<IDataSessionService, DataSessionService>();
 
 var app = builder.Build();
 
