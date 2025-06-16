@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DataAnalystBackend.MessageProcessorService": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

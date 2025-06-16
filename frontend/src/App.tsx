@@ -4,11 +4,12 @@ import viteLogo from '/vite.svg';
 import './App.css';
 import { useAuth } from './context/AuthContext'; // Assuming path to AuthContext
 import { useMediaQuery } from 'usehooks-ts'
+import {  } from "react-signalr/signalr";
 
 function App() {
   const [count, setCount] = useState(0);
   const { isAuthenticated, user, checkAuthStatus } = useAuth();
-  const isDesktop = useMediaQuery("(min-width: 768px)")
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const handleLogout = async () => {
     try {

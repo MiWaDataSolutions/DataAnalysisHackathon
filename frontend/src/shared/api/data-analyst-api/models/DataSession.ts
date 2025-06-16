@@ -68,6 +68,12 @@ export interface DataSession {
      * @memberof DataSession
      */
     user?: User;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof DataSession
+     */
+    initialFileHasHeaders?: boolean;
 }
 
 /**
@@ -94,6 +100,7 @@ export function DataSessionFromJSONTyped(json: any, ignoreDiscriminator: boolean
         'lastUpdatedAt': json['lastUpdatedAt'] == null ? undefined : (new Date(json['lastUpdatedAt'])),
         'userId': json['userId'] == null ? undefined : json['userId'],
         'user': json['user'] == null ? undefined : UserFromJSON(json['user']),
+        'initialFileHasHeaders': json['initialFileHasHeaders'] == null ? undefined : json['initialFileHasHeaders'],
     };
 }
 
@@ -109,6 +116,7 @@ export function DataSessionToJSON(value?: Omit<DataSession, 'schemaName'> | null
         'lastUpdatedAt': value['lastUpdatedAt'] == null ? undefined : ((value['lastUpdatedAt']).toISOString()),
         'userId': value['userId'],
         'user': UserToJSON(value['user']),
+        'initialFileHasHeaders': value['initialFileHasHeaders'],
     };
 }
 

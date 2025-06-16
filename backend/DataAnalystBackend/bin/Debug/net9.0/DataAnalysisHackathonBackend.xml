@@ -1,0 +1,146 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DataAnalysisHackathonBackend</name>
+    </assembly>
+    <members>
+        <member name="T:DataAnalysisHackathonBackend.Controllers.UsersController">
+            <summary>
+            Manages user login and processes user-related information using ApplicationDbContext.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.DTOs.MeDto.IsAuthenticated">
+            <summary>
+            Whether the user is authenticate or not
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.DTOs.MeDto.User">
+            <summary>
+            User details
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.DTOs.MeUserDto.GoogleId">
+            <summary>
+            The user's Google Id
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.DTOs.MeUserDto.Email">
+            <summary>
+            The user's email address
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.DTOs.MeUserDto.Name">
+            <summary>
+            The user's name
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.DTOs.MeUserDto.ProfilePictureUrl">
+            <summary>
+            The user's profile picture
+            </summary>
+        </member>
+        <member name="T:DataAnalysisHackathonBackend.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataAnalysisHackathonBackend.Migrations.InitialCreate_Fix">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.InitialCreate_Fix.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.InitialCreate_Fix.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.InitialCreate_Fix.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataAnalysisHackathonBackend.Migrations.AddDataSession">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddDataSession.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddDataSession.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddDataSession.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataAnalysisHackathonBackend.Migrations.AddDataSessionFiles">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddDataSessionFiles.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddDataSessionFiles.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddDataSessionFiles.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataAnalysisHackathonBackend.Migrations.AddedInitialFileHasHeadersToDataSession">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddedInitialFileHasHeadersToDataSession.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddedInitialFileHasHeadersToDataSession.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataAnalysisHackathonBackend.Migrations.AddedInitialFileHasHeadersToDataSession.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:DataAnalysisHackathonBackend.Models.User">
+            <summary>
+            Represents a user's profile information, typically received from the client.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.GoogleId">
+            <summary>
+            Gets or sets the user's unique Google identifier.
+            This is primarily validated from the token claims on the backend and serves as the Primary Key.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.Email">
+            <summary>
+            Gets or sets the user's email address.
+            This is primarily validated from the token claims on the backend.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.Name">
+            <summary>
+            Gets or sets the user's display name.
+            This is typically provided in the request body.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.ProfilePictureUrl">
+            <summary>
+            Gets or sets the URL of the user's profile picture. Optional.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.CreatedAtUtc">
+            <summary>
+            Gets or sets the UTC date and time when this user record was created in the database.
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.LastLoginAtUtc">
+            <summary>
+            Gets or sets the UTC date and time when this user record was updated in the database
+            </summary>
+        </member>
+        <member name="P:DataAnalysisHackathonBackend.Models.User.UserDatabaseConnectionString">
+            <summary>
+            Gets or sets the users database conenction string
+            </summary>
+        </member>
+    </members>
+</doc>

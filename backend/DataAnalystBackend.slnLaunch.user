@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "FullSolution",
+    "Projects": [
+      {
+        "Path": "DataAnalystBackend.MessageProcessorService\\DataAnalystBackend.MessageProcessorService.csproj",
+        "Action": "Start",
+        "DebugTarget": "DataAnalystBackend.MessageProcessorService"
+      },
+      {
+        "Path": "DataAnalystBackend\\DataAnalystBackend.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      }
+    ]
+  }
+]
