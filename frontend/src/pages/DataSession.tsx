@@ -121,7 +121,11 @@ export const DataSession = () => {
                 setUploadInprogress(false);
                 setUploadProgress(0);
                 setDocFile(undefined);
-                startGenerationMuatateAsync(dataSessionId!).then(() => {
+                startGenerationMuatateAsync({
+                    dataSessionId: dataSessionId!,
+                    filename: docFile.name,
+                    initialFileHasHeaders: values.fileHasHeaders == "Yes"
+                }).then(() => {
                     toast("AI Preperation Steps Completed.", {
                         description: `AI Processing in the background. You will be notified once your ${values.generationOption} has been generated.`
                     })

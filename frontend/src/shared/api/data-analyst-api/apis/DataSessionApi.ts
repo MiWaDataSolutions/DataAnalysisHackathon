@@ -17,12 +17,15 @@ import * as runtime from '../runtime';
 import type {
   DataSession,
   ProblemDetails,
+  StartGenerationDto,
 } from '../models/index';
 import {
     DataSessionFromJSON,
     DataSessionToJSON,
     ProblemDetailsFromJSON,
     ProblemDetailsToJSON,
+    StartGenerationDtoFromJSON,
+    StartGenerationDtoToJSON,
 } from '../models/index';
 
 export interface ApiDataSessionDeleteRequest {
@@ -44,7 +47,7 @@ export interface ApiDataSessionPutRequest {
 
 export interface ApiDataSessionStartGenerationPostRequest {
     dataSessionId?: string;
-    body?: string;
+    startGenerationDto?: StartGenerationDto;
 }
 
 /**
@@ -259,7 +262,7 @@ export class DataSessionApi extends runtime.BaseAPI {
             method: 'POST',
             headers: headerParameters,
             query: queryParameters,
-            body: requestParameters['body'] as any,
+            body: StartGenerationDtoToJSON(requestParameters['startGenerationDto']),
         }, initOverrides);
 
         return new runtime.VoidApiResponse(response);

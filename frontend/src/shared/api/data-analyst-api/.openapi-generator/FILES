@@ -7,6 +7,7 @@ models/DataSession.ts
 models/MeDto.ts
 models/MeUserDto.ts
 models/ProblemDetails.ts
+models/StartGenerationDto.ts
 models/User.ts
 models/index.ts
 runtime.ts

@@ -12,3 +12,9 @@ backend/DataAnalystBackend/obj/
 backend/DataAnalystBackend.MessageProcessorService/obj/
 
 backend/DataAnalystBackend.Shared/obj/
+
+agent/data_analyst_agent/.env
+
+agent/data_analyst_agent/__pycache__/
+
+agent/api/__pycache__/

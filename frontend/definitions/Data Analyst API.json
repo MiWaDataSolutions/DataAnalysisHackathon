@@ -343,17 +343,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/StartGenerationDto"
               }
             },
             "text/json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/StartGenerationDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "type": "string"
+                "$ref": "#/components/schemas/StartGenerationDto"
               }
             }
           }
@@ -500,6 +500,19 @@
         },
         "additionalProperties": { }
       },
+      "StartGenerationDto": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "nullable": true
+          },
+          "initialFileHasHeaders": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
       "User": {
         "required": [
           "email",
@@ -510,43 +523,35 @@
         "properties": {
           "googleId": {
             "minLength": 1,
-            "type": "string",
-            "description": "Gets or sets the user's unique Google identifier.\r\nThis is primarily validated from the token claims on the backend and serves as the Primary Key."
+            "type": "string"
           },
           "email": {
             "minLength": 1,
             "type": "string",
-            "description": "Gets or sets the user's email address.\r\nThis is primarily validated from the token claims on the backend.",
             "format": "email"
           },
           "name": {
             "minLength": 1,
-            "type": "string",
-            "description": "Gets or sets the user's display name.\r\nThis is typically provided in the request body."
+            "type": "string"
           },
           "profilePictureUrl": {
             "type": "string",
-            "description": "Gets or sets the URL of the user's profile picture. Optional.",
             "nullable": true
           },
           "createdAtUtc": {
             "type": "string",
-            "description": "Gets or sets the UTC date and time when this user record was created in the database.",
             "format": "date-time"
           },
           "lastLoginAtUtc": {
             "type": "string",
-            "description": "Gets or sets the UTC date and time when this user record was updated in the database",
             "format": "date-time"
           },
           "userDatabaseConnectionString": {
             "type": "string",
-            "description": "Gets or sets the users database conenction string",
             "nullable": true
           }
         },
-        "additionalProperties": false,
-        "description": "Represents a user's profile information, typically received from the client."
+        "additionalProperties": false
       }
     },
     "securitySchemes": {

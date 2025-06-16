@@ -1,5 +1,7 @@
-﻿using DataAnalystBackend.Shared.Exceptions;
+﻿using DataAnalystBackend.Shared.AgentAPIModels;
+using DataAnalystBackend.Shared.Exceptions;
 using DataAnalystBackend.Shared.Interfaces;
+using DataAnalystBackend.Shared.MessagingProviders.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,6 +22,8 @@ namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
         private IChannel? _channel;
         private AsyncEventingBasicConsumer? _consumer;
         private string _prefix;
+        private IHttpClientFactory _httpClientFactory;
+
         public void Dispose()
         {
             _consumer = null;
@@ -32,6 +36,7 @@ namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
             using IServiceScope serviceScope = hostProvider.CreateScope();
             IServiceProvider provider = serviceScope.ServiceProvider;
             _prefix = configuration.GetValue<string>("RabbitMQ:Prefix");
+            _httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
 
             Console.WriteLine($"Initializing {nameof(DataSessionGenerateNameMessageQueueHandler)}");
             _connection = await connectionFactory.CreateConnectionAsync();
@@ -59,13 +64,41 @@ namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
             {
                 CorrelationId = props.CorrelationId
             };
+            HttpClient agentClient = _httpClientFactory.CreateClient("AgentClient");
 
-            string json = JsonSerializer.Serialize(name);
+            var body = ea.Body.ToArray();
+            var message = Encoding.UTF8.GetString(body);
+            Message<GenerateNameMessage> deserializedMessage = JsonSerializer.Deserialize<Message<GenerateNameMessage>>(message);
 
-            var responseBytes = Encoding.UTF8.GetBytes(json);
-            await ch.BasicPublishAsync(exchange: string.Empty, routingKey: props.ReplyTo!,
-                mandatory: true, basicProperties: replyProps, body: responseBytes);
-            await ch.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
+            var request = new
+            {
+                userId = deserializedMessage.Data.UserId,
+                dataSessionId = deserializedMessage.Data.DataSessionId
+            };
+
+            string requestJson = JsonSerializer.Serialize(request);
+            StringContent stringContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+            var response = await agentClient.PostAsync("/api/agent/get-session-name", stringContent);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string dataSessionNameJson = await response.Content.ReadAsStringAsync();
+
+                GetSessionNameModel dataSessionName = JsonSerializer.Deserialize<GetSessionNameModel>(dataSessionNameJson);
+
+                GenerateNameResponseMessage generateNameResponseMessage = new GenerateNameResponseMessage()
+                {
+                    DataSessionName = dataSessionName.DataSessionName
+                };
+
+                string json = JsonSerializer.Serialize(generateNameResponseMessage);
+
+                var responseBytes = Encoding.UTF8.GetBytes(json);
+                await ch.BasicPublishAsync(exchange: string.Empty, routingKey: props.ReplyTo!,
+                    mandatory: true, basicProperties: replyProps, body: responseBytes);
+                await ch.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
+            }
 
             Console.WriteLine("Completed Request for Name");
         }

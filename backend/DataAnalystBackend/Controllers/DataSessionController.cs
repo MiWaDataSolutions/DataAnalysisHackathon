@@ -1,4 +1,6 @@
 ﻿
+using DataAnalystBackend.DTOs;
+using DataAnalystBackend.Shared.AgentAPIModels;
 using DataAnalystBackend.Shared.DataAccess.Models;
 using DataAnalystBackend.Shared.Exceptions;
 using DataAnalystBackend.Shared.Interfaces.Services;
@@ -125,20 +127,24 @@ namespace DataAnalystBackend.Controllers
         }
 
         [HttpPost("StartGeneration")]
-        public async Task<IActionResult> StartGenerationAsync([FromQuery] Guid dataSessionId, [FromBody] string fileName)
+        public async Task<IActionResult> StartGenerationAsync([FromQuery] Guid dataSessionId,  [FromBody] StartGenerationDto startGenerationDto)
         {
             try
-            {
-                await _dataSessionService.StartGeneration<string>(fileName, dataSessionId, User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value, (model, ea) =>
+            { 
+                string userId = User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value;
+                await _dataSessionService.StartGeneration<GetSessionNameModel>(startGenerationDto.Filename, dataSessionId, userId, async (model, ea) =>
                 {
-                    Console.WriteLine($"Got Name: {model}");
-                    return Task.CompletedTask;
-                });
+                    await _dataSessionService.UpdateDataSession(dataSessionId, model.DataSessionName, userId);
+                }, startGenerationDto.InitialFileHasHeaders);
                 return Ok();
             }
             catch (RecordNotFoundException rNFEx)
             {
                 return NotFound(rNFEx.Message);
+            }
+            catch (DataCountMismatchException dcmEx)
+            {
+                return StatusCode(500, dcmEx.Message);
             }
             catch (Exception ex)
             {

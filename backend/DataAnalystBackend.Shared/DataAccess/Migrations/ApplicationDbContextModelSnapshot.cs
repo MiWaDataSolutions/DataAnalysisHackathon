@@ -48,7 +48,7 @@ namespace DataAnalysisHackathonBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DataSessions");
+                    b.ToTable("DataSessions", (string)null);
                 });
 
             modelBuilder.Entity("DataAnalystBackend.Shared.DataAccess.Models.DataSessionFile", b =>
@@ -81,7 +81,7 @@ namespace DataAnalysisHackathonBackend.Migrations
 
                     b.HasIndex("DataSessionId");
 
-                    b.ToTable("DataSessionsFiles");
+                    b.ToTable("DataSessionsFiles", (string)null);
                 });
 
             modelBuilder.Entity("DataAnalystBackend.Shared.DataAccess.Models.User", b =>
@@ -112,7 +112,7 @@ namespace DataAnalysisHackathonBackend.Migrations
 
                     b.HasKey("GoogleId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("DataAnalystBackend.Shared.DataAccess.Models.DataSession", b =>

@@ -249,21 +249,27 @@ async Task ProcessFile(Stream content, Dictionary<string, Metadata> metadata, Ap
     }
 
     Guid dataSessionFileId = Guid.NewGuid();
+    byte[] compressed;
     using (MemoryStream ms = new MemoryStream())
-    using (var compressor = new GZipStream(ms, CompressionMode.Compress))
     {
-        await content.CopyToAsync(compressor);
-        DataSessionFile dataSessionFile = new DataSessionFile()
+        using (var compressor = new GZipStream(ms, CompressionMode.Compress))
         {
-            CreatedAt = DateTime.UtcNow,
-            DataSessionId = dataSessionId,
-            FileData = ms.ToArray(),
-            Filename = fileName,
-            UpdatedAt = DateTime.UtcNow,
-            Id = dataSessionFileId,
-        };
-
-        await db.DataSessionsFiles.AddAsync(dataSessionFile);
-        await db.SaveChangesAsync();        
+            await content.CopyToAsync(compressor);
+                
+        }
+        compressed = ms.ToArray();
     }
+
+    DataSessionFile dataSessionFile = new DataSessionFile()
+    {
+        CreatedAt = DateTime.UtcNow,
+        DataSessionId = dataSessionId,
+        FileData = compressed,
+        Filename = fileName,
+        UpdatedAt = DateTime.UtcNow,
+        Id = dataSessionFileId,
+    };
+
+    await db.DataSessionsFiles.AddAsync(dataSessionFile);
+    await db.SaveChangesAsync();
 }

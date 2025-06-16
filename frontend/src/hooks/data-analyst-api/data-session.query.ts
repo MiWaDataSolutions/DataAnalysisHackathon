@@ -76,10 +76,13 @@ export const useStartGeneration = () => {
 
     const mutation = useMutation({
         mutationKey: ['data-session-start'],
-        mutationFn: async (dataSessionId: string) => {
+        mutationFn: async ({ dataSessionId, filename, initialFileHasHeaders }: {dataSessionId: string, filename: string, initialFileHasHeaders: boolean}) => {
             return api?.apiDataSessionStartGenerationPost({
                 dataSessionId: dataSessionId,
-                body: "test.txt"
+                startGenerationDto: {
+                    filename,
+                    initialFileHasHeaders
+                }
             });
         }
     });
