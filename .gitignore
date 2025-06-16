@@ -6,3 +6,9 @@ backend/DataAnalysisHackathonBackend/obj/
 backend/DataAnalysisHackathonBackend/bin/
 
 frontend/.env.development
+
+backend/DataAnalystBackend/obj/
+
+backend/DataAnalystBackend.MessageProcessorService/obj/
+
+backend/DataAnalystBackend.Shared/obj/
