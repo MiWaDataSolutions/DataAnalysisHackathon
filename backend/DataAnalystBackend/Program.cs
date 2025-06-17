@@ -3,6 +3,7 @@ using DataAnalystBackend.Shared.DataAccess;
 using DataAnalystBackend.Shared.DataAccess.Models;
 using DataAnalystBackend.Shared.Interfaces.Services;
 using DataAnalystBackend.Shared.Services;
+using DataAnalystBackend.Shared.Services.RPC;
 using Microsoft.AspNetCore.Authentication.Cookies; // Added
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.EntityFrameworkCore;
@@ -182,9 +183,11 @@ builder.Services.AddSignalR();
 
 // Add Services
 builder.Services.AddTransient<IDataSessionService, DataSessionService>();
+builder.Services.AddScoped<RpcClient>();
 
 var app = builder.Build();
 
+ServiceProviderAccessor.RootServiceProvider = app.Services;
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -272,4 +275,8 @@ async Task ProcessFile(Stream content, Dictionary<string, Metadata> metadata, Ap
 
     await db.DataSessionsFiles.AddAsync(dataSessionFile);
     await db.SaveChangesAsync();
+}
+public static class ServiceProviderAccessor
+{
+    public static IServiceProvider RootServiceProvider { get; set; }
 }

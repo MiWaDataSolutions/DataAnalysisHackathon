@@ -50,8 +50,13 @@ export const DataSession = () => {
         setDataSessionName(dataSessionData?.name ?? "Name Will Generate After First File is Uploaded");
     }, [dataSessionData]);
 
-    SignalRContext.useSignalREffect("SendDataSessionName", (name) => {
-        setDataSessionName(name);
+    SignalRContext.useSignalREffect("RecieveDataSessionName", (receivedDataSessionId, name) => {
+        console.log(`receivedDataSessionId`, receivedDataSessionId);
+        console.log(`receivedDataSessionId`, receivedDataSessionId);
+        if (receivedDataSessionId == dataSessionId) {
+            console.log(`hit`);
+            setDataSessionName(name);
+        }
     }, []);
 
     const { mutateAsync: startGenerationMuatateAsync } = useStartGeneration();

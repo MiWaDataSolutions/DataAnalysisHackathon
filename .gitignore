@@ -18,3 +18,9 @@ agent/data_analyst_agent/.env
 agent/data_analyst_agent/__pycache__/
 
 agent/api/__pycache__/
+
+backend/DataAnalystBackend/bin/
+
+backend/DataAnalystBackend.MessageProcessorService/bin/
+
+backend/DataAnalystBackend.Shared/bin/

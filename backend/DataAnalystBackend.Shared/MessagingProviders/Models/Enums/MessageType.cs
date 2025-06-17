@@ -7,6 +7,6 @@ namespace DataAnalystBackend.Shared.MessagingProviders.Models.Enums
     public enum MessageType
     {
         DataSessionGenerateName = 0,
-        DataSessionNameGenerated = 1,
+        DataSessionStartSession = 1,
     }
 }

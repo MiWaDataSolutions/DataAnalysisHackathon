@@ -39,8 +39,8 @@ namespace DataAnalystBackend.Shared.MessagingProviders
             string queueName = string.Empty;
             switch (message.MessageType)
             {
-                case MessageType.DataSessionNameGenerated:
-                    queueName = $"{_prefix}-{IMessagingProvider.DATA_SESSION_NAME_GENERATED}";
+                case MessageType.DataSessionStartSession:
+                    queueName = $"{_prefix}-{IMessagingProvider.DATA_SESSION_START}";
                     break;
                 case MessageType.DataSessionGenerateName:
                     queueName = $"{_prefix}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}";

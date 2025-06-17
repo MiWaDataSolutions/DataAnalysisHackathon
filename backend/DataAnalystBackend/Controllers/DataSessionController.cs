@@ -1,12 +1,19 @@
 ﻿
 using DataAnalystBackend.DTOs;
+using DataAnalystBackend.Hubs;
 using DataAnalystBackend.Shared.AgentAPIModels;
 using DataAnalystBackend.Shared.DataAccess.Models;
 using DataAnalystBackend.Shared.Exceptions;
+using DataAnalystBackend.Shared.Interfaces;
 using DataAnalystBackend.Shared.Interfaces.Services;
+using DataAnalystBackend.Shared.MessagingProviders.Models;
+using DataAnalystBackend.Shared.MessagingProviders.Models.Enums;
+using DataAnalystBackend.Shared.Services.RPC;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -132,9 +139,20 @@ namespace DataAnalystBackend.Controllers
             try
             { 
                 string userId = User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value;
-                await _dataSessionService.StartGeneration<GetSessionNameModel>(startGenerationDto.Filename, dataSessionId, userId, async (model, ea) =>
+                await _dataSessionService.StartGeneration<string>(startGenerationDto.Filename, dataSessionId, userId, async (model, ea, serviceProvider) =>
                 {
-                    await _dataSessionService.UpdateDataSession(dataSessionId, model.DataSessionName, userId);
+                    using var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope();
+                    var scopedService = scope.ServiceProvider.GetRequiredService<RpcClient>();
+                    var scopedConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                    await scopedService.StartAsync<GenerateNameResponseMessage>(async (dataNameModel, dataNameEA, dataNameServiceProvider) =>
+                    {
+                        using var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope();
+                        var scopedService = scope.ServiceProvider.GetRequiredService<IDataSessionService>();
+                        var scopedHubContext = scope.ServiceProvider.GetRequiredService<IHubContext<DataSessionHub>>();
+                        await scopedService.UpdateDataSession(dataSessionId, dataNameModel.DataSessionName, userId);
+                        await scopedHubContext.Clients.Group(userId).SendAsync("RecieveDataSessionName", dataSessionId, dataNameModel.DataSessionName);
+                    });
+                    await scopedService.CallAsync(new Message<GenerateNameMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new GenerateNameMessage() { DataSessionId = dataSessionId, UserId = userId } }, $"{scopedConfig.GetValue<string>("RabbitMQ:Prefix")}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}");
                 }, startGenerationDto.InitialFileHasHeaders);
                 return Ok();
             }

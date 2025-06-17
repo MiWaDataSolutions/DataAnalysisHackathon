@@ -21,11 +21,11 @@ namespace DataAnalystBackend.Shared.Services
         private readonly RpcClient _rpcClient;
         private string _prefix;
 
-        public DataSessionService(ApplicationDbContext context, IConfiguration configuration)
+        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, RpcClient rpcClient)
         {
             _context = context;
             _defaultDatabaseString = configuration.GetRequiredSection("DefaultUserDatabaseConnection").Value;
-            _rpcClient = new RpcClient(configuration);
+            _rpcClient = rpcClient;
             _prefix = configuration.GetValue<string>("RabbitMQ:Prefix");
         }
 
@@ -79,7 +79,7 @@ namespace DataAnalystBackend.Shared.Services
             throw new RecordNotFoundException(nameof(User), Guid.Empty);
         }
 
-        public async Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, Func<TModel, BasicDeliverEventArgs, Task> consumeMethod, bool initialFileHasHeaders)
+        public async Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, Func<TModel, BasicDeliverEventArgs, IServiceProvider, Task> consumeMethod, bool initialFileHasHeaders)
         {
             User? user = await _context.Users.SingleOrDefaultAsync(o => o.GoogleId == userId);
             if (user == null)
@@ -161,24 +161,22 @@ namespace DataAnalystBackend.Shared.Services
             }
 
             await _rpcClient.StartAsync(consumeMethod);
-            await _rpcClient.CallAsync(new Message<GenerateNameMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new GenerateNameMessage() { DataSessionId = dataSessionId, UserId = userId } }, $"{_prefix}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}");
+            await _rpcClient.CallAsync(new Message<StartDataSessionMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new StartDataSessionMessage() { DataSessionId = dataSessionId, UserId = userId, DataSessionSchema = dataSession.SchemaName, UserConnString = user.UserDatabaseConnectionString.Replace("localhost", "host.docker.internal") } }, $"{_prefix}-{IMessagingProvider.DATA_SESSION_START}");
         }
 
         public async Task UpdateDataSession(Guid dataSessionId, string dataSessionName, string userId)
         {
-            if (await _context.Users.AnyAsync(o => o.GoogleId == userId))
-            {
-                DataSession? dataSessionToUpdate = await _context.DataSessions.SingleOrDefaultAsync(o => o.Id == dataSessionId && o.UserId == userId);
-                if (dataSessionToUpdate == null)
-                    throw new RecordNotFoundException(nameof(DataSession), dataSessionId);
+            if (!await _context.Users.AnyAsync(o => o.GoogleId == userId))
+                throw new RecordNotFoundException(nameof(User), Guid.Empty);
+            
+            DataSession? dataSessionToUpdate = await _context.DataSessions.SingleOrDefaultAsync(o => o.Id == dataSessionId && o.UserId == userId);
+            if (dataSessionToUpdate == null)
+                throw new RecordNotFoundException(nameof(DataSession), dataSessionId);
 
-                dataSessionToUpdate.LastUpdatedAt = DateTime.UtcNow;
-                dataSessionToUpdate.Name = dataSessionName;
+            dataSessionToUpdate.LastUpdatedAt = DateTime.UtcNow;
+            dataSessionToUpdate.Name = dataSessionName;
 
-                await _context.SaveChangesAsync();
-            }
-
-            throw new RecordNotFoundException(nameof(User), Guid.Empty);
+            await _context.SaveChangesAsync();
         }
     }
 }

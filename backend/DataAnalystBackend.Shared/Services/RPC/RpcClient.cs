@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using DataAnalystBackend.Shared.Interfaces.Services;
+using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Collections.Concurrent;
@@ -16,8 +17,9 @@ namespace DataAnalystBackend.Shared.Services.RPC
         private IConnection? _connection;
         private IChannel? _channel;
         private string? _replyQueueName;
+        private readonly IServiceProvider _serviceProvider;
 
-        public RpcClient(IConfiguration config)
+        public RpcClient(IConfiguration config, IServiceProvider serviceProvider)
         {
             _connectionFactory= new ConnectionFactory { HostName = config.GetValue<string>("RabbitMQ:HostName") };
             string? username = config.GetValue<string>("RabbitMQ:Username");
@@ -27,13 +29,20 @@ namespace DataAnalystBackend.Shared.Services.RPC
 
             if (!string.IsNullOrWhiteSpace(password))
                 _connectionFactory.Password = password;
+
+            _serviceProvider = serviceProvider;
+
+            Task.WaitAll(InitializeRPCClient());
         }
 
-        public async Task StartAsync<TModel>(Func<TModel, BasicDeliverEventArgs, Task> consumeMethod)
+        private async Task InitializeRPCClient()
         {
             _connection = await _connectionFactory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
+        }
 
+        public async Task StartAsync<TModel>(Func<TModel, BasicDeliverEventArgs, IServiceProvider, Task> consumeMethod)
+        {
             // declare a server-named queue
             QueueDeclareOk queueDeclareResult = await _channel.QueueDeclareAsync();
             _replyQueueName = queueDeclareResult.QueueName;
@@ -52,7 +61,7 @@ namespace DataAnalystBackend.Shared.Services.RPC
                         tcs.TrySetResult(response);
 
                         TModel deserializedModel = JsonSerializer.Deserialize<TModel>(response);
-                        return consumeMethod(deserializedModel, ea);
+                        return consumeMethod(deserializedModel, ea, _serviceProvider);
                     }
                 }
 
