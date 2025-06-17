@@ -6,3 +6,21 @@ backend/DataAnalysisHackathonBackend/obj/
 backend/DataAnalysisHackathonBackend/bin/
 
 frontend/.env.development
+
+backend/DataAnalystBackend/obj/
+
+backend/DataAnalystBackend.MessageProcessorService/obj/
+
+backend/DataAnalystBackend.Shared/obj/
+
+agent/data_analyst_agent/.env
+
+agent/data_analyst_agent/__pycache__/
+
+agent/api/__pycache__/
+
+backend/DataAnalystBackend/bin/
+
+backend/DataAnalystBackend.MessageProcessorService/bin/
+
+backend/DataAnalystBackend.Shared/bin/

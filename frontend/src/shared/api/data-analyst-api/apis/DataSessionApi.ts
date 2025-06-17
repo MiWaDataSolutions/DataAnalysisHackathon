@@ -17,12 +17,15 @@ import * as runtime from '../runtime';
 import type {
   DataSession,
   ProblemDetails,
+  StartGenerationDto,
 } from '../models/index';
 import {
     DataSessionFromJSON,
     DataSessionToJSON,
     ProblemDetailsFromJSON,
     ProblemDetailsToJSON,
+    StartGenerationDtoFromJSON,
+    StartGenerationDtoToJSON,
 } from '../models/index';
 
 export interface ApiDataSessionDeleteRequest {
@@ -40,6 +43,11 @@ export interface ApiDataSessionPostRequest {
 export interface ApiDataSessionPutRequest {
     dataSessionId?: string;
     dataSessionName?: string;
+}
+
+export interface ApiDataSessionStartGenerationPostRequest {
+    dataSessionId?: string;
+    startGenerationDto?: StartGenerationDto;
 }
 
 /**
@@ -226,6 +234,44 @@ export class DataSessionApi extends runtime.BaseAPI {
      */
     async apiDataSessionPut(requestParameters: ApiDataSessionPutRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
         await this.apiDataSessionPutRaw(requestParameters, initOverrides);
+    }
+
+    /**
+     */
+    async apiDataSessionStartGenerationPostRaw(requestParameters: ApiDataSessionStartGenerationPostRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<void>> {
+        const queryParameters: any = {};
+
+        if (requestParameters['dataSessionId'] != null) {
+            queryParameters['dataSessionId'] = requestParameters['dataSessionId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        headerParameters['Content-Type'] = 'application/json';
+
+        if (this.configuration && this.configuration.accessToken) {
+            const token = this.configuration.accessToken;
+            const tokenString = await token("BearerAuth", []);
+
+            if (tokenString) {
+                headerParameters["Authorization"] = `Bearer ${tokenString}`;
+            }
+        }
+        const response = await this.request({
+            path: `/api/DataSession/StartGeneration`,
+            method: 'POST',
+            headers: headerParameters,
+            query: queryParameters,
+            body: StartGenerationDtoToJSON(requestParameters['startGenerationDto']),
+        }, initOverrides);
+
+        return new runtime.VoidApiResponse(response);
+    }
+
+    /**
+     */
+    async apiDataSessionStartGenerationPost(requestParameters: ApiDataSessionStartGenerationPostRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<void> {
+        await this.apiDataSessionStartGenerationPostRaw(requestParameters, initOverrides);
     }
 
 }

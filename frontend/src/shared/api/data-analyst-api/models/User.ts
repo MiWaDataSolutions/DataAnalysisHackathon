@@ -14,52 +14,49 @@
 
 import { mapValues } from '../runtime';
 /**
- * Represents a user's profile information, typically received from the client.
+ * 
  * @export
  * @interface User
  */
 export interface User {
     /**
-     * Gets or sets the user's unique Google identifier.
-     * This is primarily validated from the token claims on the backend and serves as the Primary Key.
+     * 
      * @type {string}
      * @memberof User
      */
     googleId: string;
     /**
-     * Gets or sets the user's email address.
-     * This is primarily validated from the token claims on the backend.
+     * 
      * @type {string}
      * @memberof User
      */
     email: string;
     /**
-     * Gets or sets the user's display name.
-     * This is typically provided in the request body.
+     * 
      * @type {string}
      * @memberof User
      */
     name: string;
     /**
-     * Gets or sets the URL of the user's profile picture. Optional.
+     * 
      * @type {string}
      * @memberof User
      */
     profilePictureUrl?: string | null;
     /**
-     * Gets or sets the UTC date and time when this user record was created in the database.
+     * 
      * @type {Date}
      * @memberof User
      */
     createdAtUtc?: Date;
     /**
-     * Gets or sets the UTC date and time when this user record was updated in the database
+     * 
      * @type {Date}
      * @memberof User
      */
     lastLoginAtUtc?: Date;
     /**
-     * Gets or sets the users database conenction string
+     * 
      * @type {string}
      * @memberof User
      */

@@ -70,3 +70,22 @@ export const useDeleteDataSession = () => {
 
     return mutation;
 }
+
+export const useStartGeneration = () => {
+    const api = useDataSessionApi();
+
+    const mutation = useMutation({
+        mutationKey: ['data-session-start'],
+        mutationFn: async ({ dataSessionId, filename, initialFileHasHeaders }: {dataSessionId: string, filename: string, initialFileHasHeaders: boolean}) => {
+            return api?.apiDataSessionStartGenerationPost({
+                dataSessionId: dataSessionId,
+                startGenerationDto: {
+                    filename,
+                    initialFileHasHeaders
+                }
+            });
+        }
+    });
+
+    return mutation;
+}
