@@ -39,6 +39,7 @@ export const DataSession = () => {
     const [uploadInprogress, setUploadInprogress] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [dataSessionName, setDataSessionName] = useState<string>("Name Will Generate After First File is Uploaded");
+    const [isDataProcessing, setIsDataProcessing] = useState<boolean>(false);
     const { dataSessionId } = useParams();
     const { user } = useAuth();
     const { SignalRContext } = useSignalRWrapper();
@@ -56,6 +57,17 @@ export const DataSession = () => {
         if (receivedDataSessionId == dataSessionId) {
             console.log(`hit`);
             setDataSessionName(name);
+        }
+    }, []);
+    
+    SignalRContext.useSignalREffect("RecieveDataSessionDataGenerationComplete", (receivedDataSessionId) => {
+        console.log(`RecieveDataSessionDataGenerationComplete`, receivedDataSessionId);
+        if (receivedDataSessionId == dataSessionId) {
+            console.log(`hit`);
+            setIsDataProcessing(false);
+            toast("AI Processing Steps Completed.", {
+                description: `AI Processing completed in the background.`
+            });
         }
     }, []);
 
@@ -133,7 +145,8 @@ export const DataSession = () => {
                 }).then(() => {
                     toast("AI Preperation Steps Completed.", {
                         description: `AI Processing in the background. You will be notified once your ${values.generationOption} has been generated.`
-                    })
+                    });
+                    setIsDataProcessing(true);
                 });
             },
         });
@@ -182,7 +195,7 @@ export const DataSession = () => {
             {uploadInprogress &&
             <Progress value={uploadProgress} />
             }
-            <div className="w-lg">
+            {dataSessionName == "Name Will Generate After First File is Uploaded" && <div className="w-lg">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 flex flex-col justify-center w-lg">
                         <FormField
@@ -267,6 +280,10 @@ export const DataSession = () => {
                     </form>
                 </Form>
             </div>
+            }
+            {isDataProcessing && <div>
+                <h1>Data Processing...</h1>
+            </div>}
         </div>
     )
 }

@@ -151,7 +151,7 @@ namespace DataAnalystBackend.Shared.Services
                     StringBuilder row = new StringBuilder();
                     row.AppendLine("(");
                     foreach (var column in data)
-                        row.Append($"{column},");
+                        row.Append($"'{column.Replace('\'', '`')}',");
 
                     string insertStatement = $"INSERT INTO {dataSession.SchemaName}.bronze VALUES{row.ToString().TrimEnd(',')})";
                     await DatabaseUtilities.ExecuteSqlOnOtherDatabaseAsync(user.UserDatabaseConnectionString, insertStatement);

@@ -149,10 +149,20 @@ namespace DataAnalystBackend.Controllers
                         using var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope();
                         var scopedService = scope.ServiceProvider.GetRequiredService<IDataSessionService>();
                         var scopedHubContext = scope.ServiceProvider.GetRequiredService<IHubContext<DataSessionHub>>();
+                        var scopedRpcService = scope.ServiceProvider.GetRequiredService<RpcClient>();
                         await scopedService.UpdateDataSession(dataSessionId, dataNameModel.DataSessionName, userId);
                         await scopedHubContext.Clients.Group(userId).SendAsync("RecieveDataSessionName", dataSessionId, dataNameModel.DataSessionName);
+                        await scopedRpcService.StartAsync(async (_, dataNameServiceProvider) =>
+                        {
+                            using var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope();
+                            var scopedService = scope.ServiceProvider.GetRequiredService<IDataSessionService>();
+                            var scopedHubContext = scope.ServiceProvider.GetRequiredService<IHubContext<DataSessionHub>>();
+                            //await scopedService.UpdateDataSession(dataSessionId, dataNameModel.DataSessionName, userId);
+                            await scopedHubContext.Clients.Group(userId).SendAsync("RecieveDataSessionDataGenerationComplete", dataSessionId);
+                        });
+                        await scopedRpcService.CallAsync(new Message<GeneralAgentProcessingRequest>() { MessageType = MessageType.DataSessionDataProcess, Data = new GeneralAgentProcessingRequest() { DataSessionId = dataSessionId, UserId = userId } }, $"{scopedConfig.GetValue<string>("RabbitMQ:Prefix")}-{IMessagingProvider.DATA_SESSION_DATA_PROCESS}");
                     });
-                    await scopedService.CallAsync(new Message<GenerateNameMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new GenerateNameMessage() { DataSessionId = dataSessionId, UserId = userId } }, $"{scopedConfig.GetValue<string>("RabbitMQ:Prefix")}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}");
+                    await scopedService.CallAsync(new Message<GeneralAgentProcessingRequest>() { MessageType = MessageType.DataSessionGenerateName, Data = new GeneralAgentProcessingRequest() { DataSessionId = dataSessionId, UserId = userId } }, $"{scopedConfig.GetValue<string>("RabbitMQ:Prefix")}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}");
                 }, startGenerationDto.InitialFileHasHeaders);
                 return Ok();
             }

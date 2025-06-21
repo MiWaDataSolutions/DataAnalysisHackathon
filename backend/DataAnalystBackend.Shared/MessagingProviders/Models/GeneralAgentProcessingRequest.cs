@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataAnalystBackend.Shared.MessagingProviders.Models
 {
-    public class GenerateNameMessage
+    public class GeneralAgentProcessingRequest
     {
         public string UserId { get; set; }
 

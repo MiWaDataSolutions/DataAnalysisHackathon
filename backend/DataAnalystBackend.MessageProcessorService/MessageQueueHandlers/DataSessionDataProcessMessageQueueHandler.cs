@@ -4,7 +4,6 @@ using DataAnalystBackend.Shared.Interfaces;
 using DataAnalystBackend.Shared.MessagingProviders.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -16,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
 {
-    public class DataSessionGenerateNameMessageQueueHandler : IMessageQueueHandler
+    public class DataSessionDataProcessMessageQueueHandler : IMessageQueueHandler
     {
         private IConnection _connection;
         private IChannel? _channel;
@@ -38,24 +37,22 @@ namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
             _prefix = configuration.GetValue<string>("RabbitMQ:Prefix");
             _httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
 
-            Console.WriteLine($"Initializing {nameof(DataSessionGenerateNameMessageQueueHandler)}");
+            Console.WriteLine($"Initializing {nameof(DataSessionDataProcessMessageQueueHandler)}");
             _connection = await connectionFactory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
 
-            await _channel.QueueDeclareAsync(queue: $"{_prefix}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}", durable: false, exclusive: false, autoDelete: false,
+            await _channel.QueueDeclareAsync(queue: $"{_prefix}-{IMessagingProvider.DATA_SESSION_DATA_PROCESS}", durable: false, exclusive: false, autoDelete: false,
                 arguments: null);
 
 
             _consumer = new AsyncEventingBasicConsumer(_channel);
             _consumer.ReceivedAsync += Consume;
 
-            Console.WriteLine($"Initialized {nameof(DataSessionGenerateNameMessageQueueHandler)}");
+            Console.WriteLine($"Initialized {nameof(DataSessionDataProcessMessageQueueHandler)}");
         }
 
         private async Task Consume(object sender, BasicDeliverEventArgs ea)
         {
-            Console.WriteLine("Got Request for Name");
-            string name = "Michael Test";
             AsyncEventingBasicConsumer cons = (AsyncEventingBasicConsumer)sender;
             IChannel ch = cons.Channel;
 
@@ -78,41 +75,39 @@ namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
 
             string requestJson = JsonSerializer.Serialize(request);
             StringContent stringContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
-
-            var response = await agentClient.PostAsync("/api/agent/get-session-name", stringContent);
+            agentClient.Timeout = TimeSpan.Parse("24.20:31:23.6470000");
+            var response = await agentClient.PostAsync("/api/agent/start-data-session-processing", stringContent);
 
             if (response.IsSuccessStatusCode)
             {
-                string dataSessionNameJson = await response.Content.ReadAsStringAsync();
+                //string dataSessionNameJson = await response.Content.ReadAsStringAsync();
 
-                GetSessionNameModel dataSessionName = JsonSerializer.Deserialize<GetSessionNameModel>(dataSessionNameJson);
+                //GetSessionNameModel dataSessionName = JsonSerializer.Deserialize<GetSessionNameModel>(dataSessionNameJson);
 
-                GenerateNameResponseMessage generateNameResponseMessage = new GenerateNameResponseMessage()
-                {
-                    DataSessionName = dataSessionName.DataSessionName
-                };
+                //GenerateNameResponseMessage generateNameResponseMessage = new GenerateNameResponseMessage()
+                //{
+                //    DataSessionName = dataSessionName.DataSessionName
+                //};
 
-                string json = JsonSerializer.Serialize(generateNameResponseMessage);
+                string json = JsonSerializer.Serialize("true");
 
                 var responseBytes = Encoding.UTF8.GetBytes(json);
                 await ch.BasicPublishAsync(exchange: string.Empty, routingKey: props.ReplyTo!,
                     mandatory: true, basicProperties: replyProps, body: responseBytes);
                 await ch.BasicAckAsync(deliveryTag: ea.DeliveryTag, multiple: false);
             }
-
-            Console.WriteLine("Completed Request for Name");
         }
 
         public async Task StartConsuming()
         {
-            Console.WriteLine($"Starting Consuming on {nameof(DataSessionGenerateNameMessageQueueHandler)}");
+            Console.WriteLine($"Starting Consuming on {nameof(DataSessionDataProcessMessageQueueHandler)}");
             if (_consumer == null)
-                throw new MessageProviderException($"{IMessagingProvider.DATA_SESSION_GENERATE_NAME} consumer not initialized");
+                throw new MessageProviderException($"{IMessagingProvider.DATA_SESSION_DATA_PROCESS} consumer not initialized");
 
             if (_channel == null)
-                throw new MessageProviderException($"{IMessagingProvider.DATA_SESSION_GENERATE_NAME} channel not initialized");
+                throw new MessageProviderException($"{IMessagingProvider.DATA_SESSION_DATA_PROCESS} channel not initialized");
 
-            await _channel.BasicConsumeAsync($"{_prefix}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}", autoAck: true, consumer: _consumer);
+            await _channel.BasicConsumeAsync($"{_prefix}-{IMessagingProvider.DATA_SESSION_DATA_PROCESS}", autoAck: true, consumer: _consumer);
         }
     }
 }

@@ -71,6 +71,34 @@ namespace DataAnalystBackend.Shared.Services.RPC
             await _channel.BasicConsumeAsync(_replyQueueName, true, consumer);
         }
 
+        public async Task StartAsync(Func<BasicDeliverEventArgs, IServiceProvider, Task> consumeMethod)
+        {
+            // declare a server-named queue
+            QueueDeclareOk queueDeclareResult = await _channel.QueueDeclareAsync();
+            _replyQueueName = queueDeclareResult.QueueName;
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+
+            consumer.ReceivedAsync += (model, ea) =>
+            {
+                string? correlationId = ea.BasicProperties.CorrelationId;
+
+                if (!string.IsNullOrEmpty(correlationId))
+                {
+                    if (_callbackMapper.TryRemove(correlationId, out var tcs))
+                    {
+                        var body = ea.Body.ToArray();
+                        var response = Encoding.UTF8.GetString(body);
+                        tcs.TrySetResult(response);
+                        return consumeMethod(ea, _serviceProvider);
+                    }
+                }
+
+                return Task.CompletedTask;
+            };
+
+            await _channel.BasicConsumeAsync(_replyQueueName, true, consumer);
+        }
+
         public async Task<string> CallAsync<TInput>(TInput message, string destinationQueue,
             CancellationToken cancellationToken = default)
         {
