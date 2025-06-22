@@ -191,6 +191,8 @@ builder.Services.AddSignalR();
 // Add Services
 builder.Services.AddTransient<IDataSessionService, DataSessionService>();
 builder.Services.AddTransient<IMessagingProvider, RabbitMQMessagingProvider>();
+builder.Services.AddTransient<IGraphingDataService, GraphingDataService>();
+builder.Services.AddTransient<IDataSessionFileService, DataSessionFileService>();
 builder.Services.AddScoped<RpcClient>();
 
 var app = builder.Build();

@@ -57,6 +57,15 @@ class DataPipelineAgent(BaseAgent):
         ctx.session.state['bronze_data'] = bronze_data
         print(f"bronze_data", bronze_data)
 
+        if "schema" not in ctx.session.state or not ctx.session.state["schema"]:
+             logger.error(f"[{self.name}] Failed to generate silver table as schema is not in session. Aborting workflow.")
+             return # Stop processing if initial story failed
+        
+        if "bronze_data" not in ctx.session.state or not ctx.session.state["bronze_data"]:
+             logger.error(f"[{self.name}] Failed to generate silver table as bronze_data is not in session. Aborting workflow.")
+             return # Stop processing if initial story failed
+            
+
         while self.check_silver_table_exists(ctx) == 0:
             try:
                 logger.warning(f"[{self.name}] Silver table doesnt exist. Trying to create it...")
@@ -103,7 +112,8 @@ class DataPipelineAgent(BaseAgent):
                     ctx.session.state.pop('silver_table_bas_bas', None)
                     if event.content and event.content.parts:
                         logger.warning(f"[{self.name}] final response parts = {event.content.parts}")
-                    break
+                        script = event.content.parts[0].text or ""
+                        break
 
         logger.warning(f"[{self.name}] Running Data View Agent Done")
         custom_message = "✅ Data pipeline completed successfully! All steps finished."

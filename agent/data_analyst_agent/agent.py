@@ -1,10 +1,10 @@
 from google.adk.agents import Agent
-from google.adk.sessions import DatabaseSessionService
+from google.adk.sessions import DatabaseSessionService, InMemorySessionService
 from google.adk.runners import Runner
-from google.adk.artifacts import InMemoryArtifactService
 from google.adk.models.lite_llm import LiteLlm
 from .agent_naming import session_naming_agent
 from .agent_sequential import data_pipeline_agent
+from .shared.custom_agents.data_routing_agent import DataRoutingAgent
 from .shared import constants
 from dotenv import load_dotenv
 import os
@@ -13,9 +13,7 @@ import logging
 load_dotenv()
 
 db_url = "postgresql://postgres:postgres@host.docker.internal:5432/data_analyst_session_storage"
-session_service = DatabaseSessionService(db_url=db_url)
-# Simply instantiate the class
-in_memory_service_py = InMemoryArtifactService()
+session_service = InMemorySessionService() #DatabaseSessionService(db_url=db_url)
 
 APP_NAME = "data_analyst_app"
 instruction = (
@@ -73,7 +71,7 @@ Route incoming requests to appropriate specialized agents based on content analy
 {
   "delegation": {
     "target_agent": "data_pipeline_agent",
-    "original_request": "Please analyze the  data",
+    "original_request": "Please analyze the data",
     "context": {
       "session_id": "DS_20240620_12345",
       "reason": "Matches data analysis pattern: 'analyze' + 'data'"
@@ -103,18 +101,16 @@ Route incoming requests to appropriate specialized agents based on content analy
     """
 )
 
-root_agent = Agent(
+root_agent = DataRoutingAgent(
     name="main_coordinator_agent",
-    model=constants.MODEL_GEMINI_2_0_FLASH,
     description="The main coordinator agent. Manages the entire data pipeline workflow from Bronze to Gold by delegating tasks to specialist sub-agents.",
-    instruction=instruction,
-    sub_agents=[session_naming_agent, data_pipeline_agent],
+    data_naming_agent=session_naming_agent,
+    data_processing_agent=data_pipeline_agent
 )
 
 runner_root = Runner(
     agent=root_agent,
     app_name=APP_NAME,
     session_service=session_service, # <<< Use the service from Step 4/5
-    artifact_service=in_memory_service_py
 )
 

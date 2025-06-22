@@ -3,6 +3,7 @@ using DataAnalystBackend.Shared.Interfaces;
 using DataAnalystBackend.Shared.Interfaces.Services;
 using DataAnalystBackend.Shared.MessagingProviders.Models;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.DependencyInjection;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
@@ -41,7 +42,12 @@ namespace DataAnalystBackend.Consumers
                 // Handle the message
                 Console.WriteLine($"Received: {message}");
                 DataProcessStartResponseMessage dataNameModel = JsonSerializer.Deserialize<DataProcessStartResponseMessage>(message);
-                //await _dataSessionService.UpdateDataSession(dataNameModel.DataSessionId, dataNameModel.DataSessionName, dataNameModel.UserId);
+
+                using (var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope())
+                {
+                    IDataSessionFileService dataSessionFileService = scope.ServiceProvider.GetRequiredService<IDataSessionFileService>();
+                    await dataSessionFileService.SetDataFileProcessed(dataNameModel.DataSessionId);
+                }
                 await _hubContext.Clients.Group(dataNameModel.UserId).SendAsync("RecieveDataSessionDataGenerationComplete", dataNameModel.DataSessionId);
 
             };

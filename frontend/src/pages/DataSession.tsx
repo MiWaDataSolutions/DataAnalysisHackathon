@@ -15,6 +15,10 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useSignalRWrapper } from "@/providers/signalr.provider";
+import { useGetGraphData, useGetKPIData } from "@/hooks/data-analyst-api/graphing.query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PieChart, Pie, Cell, BarChart, Bar, CartesianGrid, XAxis } from 'recharts';
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
 
 
 export const DOCUMENT_SCHEMA = z
@@ -39,13 +43,43 @@ export const DataSession = () => {
     const [uploadInprogress, setUploadInprogress] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
     const [dataSessionName, setDataSessionName] = useState<string>("Name Will Generate After First File is Uploaded");
-    const [isDataProcessing, setIsDataProcessing] = useState<boolean>(false);
     const { dataSessionId } = useParams();
     const { user } = useAuth();
     const { SignalRContext } = useSignalRWrapper();
+    const chartConfig = {
+        desktop: {
+            label: "Desktop",
+            color: "#2563eb",
+        },
+        mobile: {
+            label: "Mobile",
+            color: "#60a5fa",
+        },
+    } satisfies ChartConfig
+
+    const graphChartConfig = {
+        xAxis: {
+            label: "X Axis",
+            color: "#2563eb",
+        },
+        yAxis: {
+            label: "Y Axis",
+            color: "#60a5fa",
+        },
+    } satisfies ChartConfig
+
+    const COLORS = ['#0088FE', '#e0e0e0'];
     
     const { data: dataSessionData, error: dataSessionError } = useGetDataSessionById(dataSessionId!);
     if (dataSessionError) throw dataSessionError;
+
+    const { data: graphKPIData, error: graphKPIDataError } = useGetKPIData(dataSessionData?.id, dataSessionData?.processedStatus);
+
+    if (graphKPIDataError) throw graphKPIDataError;
+
+    const { data: graphData, error: graphDataError } = useGetGraphData(dataSessionData?.id, dataSessionData?.processedStatus);
+
+    if (graphDataError) throw graphDataError;
 
     useEffect(() => {
         setDataSessionName(dataSessionData?.name ?? "Name Will Generate After First File is Uploaded");
@@ -64,7 +98,6 @@ export const DataSession = () => {
         console.log(`RecieveDataSessionDataGenerationComplete`, receivedDataSessionId);
         if (receivedDataSessionId == dataSessionId) {
             console.log(`hit`);
-            setIsDataProcessing(false);
             toast("AI Processing Steps Completed.", {
                 description: `AI Processing completed in the background.`
             });
@@ -146,7 +179,6 @@ export const DataSession = () => {
                     toast("AI Preperation Steps Completed.", {
                         description: `AI Processing in the background. You will be notified once your ${values.generationOption} has been generated.`
                     });
-                    setIsDataProcessing(true);
                 });
             },
         });
@@ -281,9 +313,89 @@ export const DataSession = () => {
                 </Form>
             </div>
             }
-            {isDataProcessing && <div>
+            {dataSessionData?.processedStatus == 1 && <div>
                 <h1>Data Processing...</h1>
             </div>}
+            <div className="flex flex-col justify-between">
+                <div className="flex flex-row justify-between">
+            {dataSessionData?.processedStatus == 2 && graphKPIData && graphKPIData.map((kpi) => (
+                <Card key={kpi.kpiName}>
+                    <CardHeader>
+                        <CardTitle>{kpi.kpiName} - Last 30 Days</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+                            <PieChart width={200} height={120}>
+                                <Pie
+                                    data={[
+                                        {
+                                            value: kpi.last30Days! > 6000 ? 1 : kpi.last30Days! / 6000,
+                                        },
+                                        {
+                                            value: 1 - (kpi.last30Days! > 6000 ? 1 : kpi.last30Days! / 6000)
+                                        }
+                                    ]}
+                                    startAngle={180}
+                                    endAngle={0}
+                                    innerRadius={60}
+                                    outerRadius={80}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {[
+                                        {
+                                            value: kpi.last30Days! > 6000 ? 1 : kpi.last30Days! / 6000,
+                                        },
+                                        {
+                                            value: 1 - (kpi.last30Days! > 6000 ? 1 : kpi.last30Days! / 6000)
+                                        }
+                                    ].map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <text
+                                    x={100}
+                                    y={100}
+                                    textAnchor="middle"
+                                    dominantBaseline="middle"
+                                    fontSize="24"
+                                >
+                                    {kpi.last30Days!}
+                                </text>
+                            </PieChart>
+                        </ChartContainer>
+                    </CardContent>
+                </Card>
+            ))} 
+            </div>
+            <div className="flex flex-row justify-between">
+            {dataSessionData?.processedStatus == 2 && graphData && Object.keys(graphData).map((graph) => (
+                    <Card key={graph}>
+                        <CardHeader>
+                            <CardTitle>{graph}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer config={graphChartConfig} className="min-h-[200px] w-full">
+                                <BarChart accessibilityLayer data={graphData[graph].map((data) => {
+                                    return { xAxis: data.xAxis, yAxis: data.yAxis }
+                                })}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis
+                                        dataKey="xAxis"
+                                        tickLine={false}
+                                        tickMargin={10}
+                                        axisLine={false}
+                                        tickFormatter={(value) => value.slice(0, 3)}
+                                    />
+                                    <Bar dataKey="yAxis" fill="var(--color-yAxis)" radius={4} />
+                                </BarChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+            ))}
+            </div>
+
+            </div>
         </div>
     )
 }

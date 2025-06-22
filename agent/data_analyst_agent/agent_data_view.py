@@ -47,13 +47,13 @@ data = [r.split('||') for r in rows[1:]]```
 -- Pattern for each KPI (replace placeholders)
 CREATE OR REPLACE VIEW {schema}.vw_kpi_targets_gold_<kpi_name>_current AS
 SELECT
-  SUM(CASE WHEN <date_column> >= CURRENT_DATE - INTERVAL '30 days' 
+  SUM(CASE WHEN <date_column> >= MAX(<date_column>) - INTERVAL '30 days' 
            THEN <kpi_column> END) AS current_30_day_performance,
-  SUM(CASE WHEN <date_column> BETWEEN CURRENT_DATE - INTERVAL '120 days' 
-                AND CURRENT_DATE - INTERVAL '31 days'
+  SUM(CASE WHEN <date_column> BETWEEN MAX(<date_column>) - INTERVAL '90 days' 
+                AND MAX(<date_column>) - INTERVAL '31 days'
            THEN <kpi_column> END) AS historic_90_day_total,
-  SUM(CASE WHEN <date_column> BETWEEN CURRENT_DATE - INTERVAL '120 days' 
-                AND CURRENT_DATE - INTERVAL '31 days'
+  SUM(CASE WHEN <date_column> BETWEEN MAX(<date_column>) - INTERVAL '120 days' 
+                AND MAX(<date_column>) - INTERVAL '31 days'
            THEN <kpi_column> END) / 3 AS historic_monthly_avg_target
 FROM {schema}.silver;
 

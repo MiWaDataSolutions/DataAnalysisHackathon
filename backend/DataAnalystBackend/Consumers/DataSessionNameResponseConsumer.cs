@@ -46,8 +46,10 @@ namespace DataAnalystBackend.Consumers
                 using (var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope())
                 {
                     IDataSessionService dataSessionService = scope.ServiceProvider.GetRequiredService<IDataSessionService>();
+                    IMessagingProvider messagingProvider = scope.ServiceProvider.GetRequiredService<IMessagingProvider>();
                     await dataSessionService.UpdateDataSession(dataNameModel.DataSessionId, dataNameModel.DataSessionName, dataNameModel.UserId);
-                    await _hubContext.Clients.Group(dataNameModel.UserId).SendAsync("RecieveDataSessionName", dataNameModel.DataSessionId, dataNameModel.DataSessionName);
+                    await _hubContext.Clients.Group(dataNameModel.UserId).SendAsync("RecieveDataSessionName", dataNameModel.DataSessionId, dataNameModel.DataSessionName); ;
+                    await messagingProvider.PublishMessageAsync(new Message<GenerateNameResponseMessage>() { Data = dataNameModel, MessageType = Shared.MessagingProviders.Models.Enums.MessageType.DataSessionDataProcess });
                 }
 
             };

@@ -19,14 +19,14 @@ namespace DataAnalystBackend.Shared.Services
         private readonly ApplicationDbContext _context;
         private readonly string _defaultDatabaseString;
         private readonly IMessagingProvider _messagingProvider;
-        private string _prefix;
+        private readonly IDataSessionFileService _dataSessionFileService;
 
-        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, IMessagingProvider messagingProvider)
+        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, IMessagingProvider messagingProvider, IDataSessionFileService dataSessionFileService)
         {
             _context = context;
             _defaultDatabaseString = configuration.GetRequiredSection("DefaultUserDatabaseConnection").Value;
-            _prefix = configuration.GetValue<string>("RabbitMQ:Prefix");
             _messagingProvider = messagingProvider;
+            _dataSessionFileService = dataSessionFileService;
         }
 
         public async Task<Guid> CreateDataSession(DataSession dataSession, string userId)
@@ -111,6 +111,7 @@ namespace DataAnalystBackend.Shared.Services
             if (dataSessionFile == null)
                 throw new RecordNotFoundException(nameof(DataSessionFile), dataSessionId);
 
+            await _dataSessionFileService.SetDataFileInprogress(dataSessionId);
 
             using (MemoryStream decompressedFile = new MemoryStream(GeneralUtilities.DecompressFile(dataSessionFile.FileData)))
             using (StreamReader sr = new StreamReader(decompressedFile))

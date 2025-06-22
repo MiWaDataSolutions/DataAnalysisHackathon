@@ -46,7 +46,6 @@ namespace DataAnalystBackend.Consumers
                 {
                     IMessagingProvider messagingProvider = scope.ServiceProvider.GetRequiredService<IMessagingProvider>();
                     await messagingProvider.PublishMessageAsync(new Message<StartDataSessionMessage>() { Data = startDataSessionMessage, MessageType = Shared.MessagingProviders.Models.Enums.MessageType.DataSessionGenerateName });
-                    await messagingProvider.PublishMessageAsync(new Message<StartDataSessionMessage>() { Data = startDataSessionMessage, MessageType = Shared.MessagingProviders.Models.Enums.MessageType.DataSessionDataProcess });
                 }
             };
             return _channel.BasicConsumeAsync(queue: $"{_prefix}-{IMessagingProvider.DATA_SESSION_START}_response", autoAck: true, consumer: consumer);
