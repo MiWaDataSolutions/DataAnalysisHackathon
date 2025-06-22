@@ -53,15 +53,23 @@ class DataPipelineAgent(BaseAgent):
         
         logger.warning(f"[{self.name}] Running Data Pipeline...")
         logger.warning(f"[{self.name}] Running Data Type Agent...")
+        bronze_data = get_database_data("bronze", 0, ctx)
+        ctx.session.state['bronze_data'] = bronze_data
+        print(f"bronze_data", bronze_data)
 
         while self.check_silver_table_exists(ctx) == 0:
-            logger.warning(f"[{self.name}] Bronze table doesnt exist. Trying to create it...")
-            async for event in self.data_type_agent.run_async(ctx):
-                logger.info(f"[{self.name}] Event from {self.data_type_agent.name}: {event.model_dump_json(indent=2, exclude_none=True)}")
-                if not event.is_final_response():
-                    yield event
-                else:
-                    break        
+            try:
+                logger.warning(f"[{self.name}] Silver table doesnt exist. Trying to create it...")
+                async for event in self.data_type_agent.run_async(ctx):
+                    logger.info(f"[{self.name}] Event from {self.data_type_agent.name}: {event.model_dump_json(indent=2, exclude_none=True)}")
+                    if not event.is_final_response():
+                        yield event
+                    else:
+                        if event.content and event.content.parts:
+                            logger.warning(f"[{self.name}] final response parts = {event.content.parts}")
+                        break        
+            except Exception as e:
+                logger.warning(f"[{self.name}] Exception Occured. Exception is: {e}. Trying again...")
 
         logger.warning(f"[{self.name}] Running Data Type Agent Done")
         # Add retry logic etc later
@@ -82,8 +90,8 @@ class DataPipelineAgent(BaseAgent):
         ctx.session.state['cleaned_batch_data'] = cleaned_batch_data
 
         # Optionally clear unrelated output keys
-        # ctx.session.state.pop('silver_table_created', None)
-        # ctx.session.state.pop('silver_table_bas', None)
+        ctx.session.state.pop('silver_table_created', None)
+        ctx.session.state.pop('silver_table_bas', None)
 
         while self.check_views_exists(ctx) == 0:
             logger.warning(f"[{self.name}] Running Data View Agent...")
@@ -92,6 +100,7 @@ class DataPipelineAgent(BaseAgent):
                 if not event.is_final_response():
                     yield event
                 else:
+                    ctx.session.state.pop('silver_table_bas_bas', None)
                     if event.content and event.content.parts:
                         logger.warning(f"[{self.name}] final response parts = {event.content.parts}")
                     break

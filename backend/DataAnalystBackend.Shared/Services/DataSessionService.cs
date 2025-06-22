@@ -18,15 +18,15 @@ namespace DataAnalystBackend.Shared.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly string _defaultDatabaseString;
-        private readonly RpcClient _rpcClient;
+        private readonly IMessagingProvider _messagingProvider;
         private string _prefix;
 
-        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, RpcClient rpcClient)
+        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, IMessagingProvider messagingProvider)
         {
             _context = context;
             _defaultDatabaseString = configuration.GetRequiredSection("DefaultUserDatabaseConnection").Value;
-            _rpcClient = rpcClient;
             _prefix = configuration.GetValue<string>("RabbitMQ:Prefix");
+            _messagingProvider = messagingProvider;
         }
 
         public async Task<Guid> CreateDataSession(DataSession dataSession, string userId)
@@ -79,7 +79,7 @@ namespace DataAnalystBackend.Shared.Services
             throw new RecordNotFoundException(nameof(User), Guid.Empty);
         }
 
-        public async Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, Func<TModel, BasicDeliverEventArgs, IServiceProvider, Task> consumeMethod, bool initialFileHasHeaders)
+        public async Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, bool initialFileHasHeaders)
         {
             User? user = await _context.Users.SingleOrDefaultAsync(o => o.GoogleId == userId);
             if (user == null)
@@ -159,9 +159,7 @@ namespace DataAnalystBackend.Shared.Services
                     rowNumber++;
                 }
             }
-
-            await _rpcClient.StartAsync(consumeMethod);
-            await _rpcClient.CallAsync(new Message<StartDataSessionMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new StartDataSessionMessage() { DataSessionId = dataSessionId, UserId = userId, DataSessionSchema = dataSession.SchemaName, UserConnString = user.UserDatabaseConnectionString.Replace("localhost", "host.docker.internal") } }, $"{_prefix}-{IMessagingProvider.DATA_SESSION_START}");
+            await _messagingProvider.PublishMessageAsync(new Message<StartDataSessionMessage>() { MessageType = MessageType.DataSessionStartSession, Data = new StartDataSessionMessage() { DataSessionId = dataSessionId, UserId = userId, DataSessionSchema = dataSession.SchemaName, UserConnString = user.UserDatabaseConnectionString.Replace("localhost", "host.docker.internal") } });
         }
 
         public async Task UpdateDataSession(Guid dataSessionId, string dataSessionName, string userId)

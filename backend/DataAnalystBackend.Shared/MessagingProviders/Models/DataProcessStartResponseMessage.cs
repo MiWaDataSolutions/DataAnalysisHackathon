@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 
 namespace DataAnalystBackend.Shared.MessagingProviders.Models
 {
-    public class GenerateNameResponseMessage
+    public class DataProcessStartResponseMessage
     {
-        [JsonPropertyName("dataSessionName")]
-        public string DataSessionName { get; set; }
-
-        [JsonPropertyName("dataSessionId")]
-        public Guid DataSessionId { get; set; }
+        [JsonPropertyName("processed")]
+        public bool Processed { get; set; }
 
         [JsonPropertyName("userId")]
         public string UserId { get; set; }
+
+        [JsonPropertyName("dataSessionId")]
+        public Guid DataSessionId { get; set; }
     }
 }

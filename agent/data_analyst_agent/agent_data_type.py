@@ -14,15 +14,16 @@ data_type_agent = LlmAgent(
     **Failure Handling**: Automatic retry with type promotion on errors (max 3 attempts).  
 
     **Steps to Execute**:
-    1. **Retrieve Schema**:  
-    - Access `schema` variable from session state
-    - If missing, fail with "Schema not found in session state"
+    1. Input Requirements
+    - **Session State** will contain the following keys necessary to complete the job. These keys can be found in the session state:
+        - `schema`: Target schema name
+        - `bronze_data`: Analysis sample (format below)
+    - **Data Format**:
+        - First row = column headers (separated by `||`)
+        - Subsequent rows = data values (separated by `||`)
+        - Rows separated by `[|]` delimiter
 
-    2. **Fetch Data Sample**:  
-    - Use `get_database_data_subset` tool
-    - Validate: Minimum 2 rows (headers + ≥1 data row)
-
-    3. **Infer Data Types**:
+    2. **Infer Data Types**:
     - Process non-empty values only
     - Use this type hierarchy (strict → fallback):  
         `BOOLEAN → INTEGER → BIGINT → NUMERIC → TEXT`  
@@ -36,7 +37,7 @@ data_type_agent = LlmAgent(
         - **Timestamp**: ISO 8601 or 'YYYY-MM-DD HH:MM:SS'
         - **Text**: All other cases
 
-    4. **Generate CREATE TABLE Script**:
+    3. **Generate CREATE TABLE Script**:
     ```sql
     DROP TABLE IF EXISTS "{schema}"."silver";
     CREATE TABLE "{schema}"."silver" (
@@ -48,7 +49,7 @@ data_type_agent = LlmAgent(
 
         - Use exact headers from first row
 
-    5. **Execute & Validate**:
+    4. **Execute & Validate**:
         - Run via execute_script tool
         - On success: Return True
         - On failure:
@@ -57,7 +58,7 @@ data_type_agent = LlmAgent(
             c. Syntax Error: Correct script and retry
             d. Schema Error: Fail with "Schema {schema} not found"
 
-    6. **Retry Logic**:
+    5. **Retry Logic**:
         - Max 3 attempts per invocation
         - Maintain original headers and column count
         - Terminate with error on non-recoverable issues
@@ -66,6 +67,6 @@ data_type_agent = LlmAgent(
         - Never use public.silver or unqualified silver
         - Never modify headers or column count during retries
         - Validate schema exists before execution""",
-    tools=[tools.get_database_data_subset, tools.execute_script],
+    tools=[tools.execute_script],
     output_key="silver_table_created" # Stores output in state['generated_code']
 )

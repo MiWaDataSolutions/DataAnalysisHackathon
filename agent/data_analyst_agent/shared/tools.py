@@ -36,7 +36,7 @@ def get_database_data(table: str, offset: int, tool_context: InvocationContext) 
             rows = cur.fetchall()
             temp = []
             for row in rows:
-                temp.append(str(row))
+                temp.append(str(row).replace("('", "").replace("',)", ""))
             joined_rows = ["||".join(temp)]
 
 

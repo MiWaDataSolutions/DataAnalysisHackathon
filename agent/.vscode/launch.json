@@ -13,6 +13,16 @@
                 "PYTHONPATH": "${workspaceFolder}",
                 "ADK_LOG_LEVEL":"DEBUG"
             }
+        },
+        {
+            "name": "Python: message_bus.py",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/message_bus/message_bus.py",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "ADK_LOG_LEVEL":"DEBUG"
+            }
         }
     ]
 }

@@ -65,15 +65,15 @@ async def start_data_session_processing(request: Request):
     content = types.Content(role="user", parts=[types.Part(text="Analyze the data in the Data Session")]) 
 
     final_response_text = "Agent did not produce a final response"
-
-    async for event in runner_root.run_async(user_id=user_id, session_id=data_session_id, new_message=content):
-        if event.is_final_response():
-            if event.content and event.content.parts:
-                print('event.content.parts', event.content.parts)
-                final_response_text = event.content.parts[0].text
-            elif event.actions and event.actions.escalate:
-                final_response_text = f"Agent escalated: {event.error_message or 'No specific message.'}"
-            break 
+    while final_response_text != "✅ Data pipeline completed successfully! All steps finished.":
+        async for event in runner_root.run_async(user_id=user_id, session_id=data_session_id, new_message=content):
+            if event.is_final_response():
+                if event.content and event.content.parts:
+                    print('event.content.parts', event.content.parts)
+                    final_response_text = event.content.parts[0].text
+                elif event.actions and event.actions.escalate:
+                    final_response_text = f"Agent escalated: {event.error_message or 'No specific message.'}"
+                break 
     
     print('final_response_text', final_response_text)
     response = {"dataSessionName": final_response_text}
