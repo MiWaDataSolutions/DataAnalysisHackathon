@@ -25,10 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\DataAnalystBackend.Shared\DataAnalystBackend.Shared.csproj" />
   </ItemGroup>
 

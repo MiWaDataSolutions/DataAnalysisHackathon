@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { AuthApi, DataSessionApi, UsersApi } from "./data-analyst-api/apis";
+import { AuthApi, DataSessionApi, GraphingApi, UsersApi } from "./data-analyst-api/apis";
 import { Configuration, type DataSession } from "./data-analyst-api";
 
 export const useAuthApi = () => {
@@ -46,6 +46,23 @@ export const useDataSessionApi = () => {
         });
 
         setApiClient(new DataSessionApi(config));
+    }, []);
+
+    return apiClient;
+}
+
+export const useGraphingApi = () => {
+    const [apiClient, setApiClient] = useState<GraphingApi>();
+
+
+    // 3. Create the API client when the token changes
+    useEffect(() => {
+        let config = new Configuration({
+            basePath: import.meta.env.VITE_DATA_ANALYST_API_URL,
+            credentials: 'include'
+        });
+
+        setApiClient(new GraphingApi(config));
     }, []);
 
     return apiClient;

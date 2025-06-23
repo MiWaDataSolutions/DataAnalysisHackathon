@@ -4,7 +4,6 @@ using DataAnalystBackend.Hubs;
 using DataAnalystBackend.Shared.AgentAPIModels;
 using DataAnalystBackend.Shared.DataAccess.Models;
 using DataAnalystBackend.Shared.Exceptions;
-using DataAnalystBackend.Shared.Interfaces;
 using DataAnalystBackend.Shared.Interfaces.Services;
 using DataAnalystBackend.Shared.MessagingProviders.Models;
 using DataAnalystBackend.Shared.MessagingProviders.Models.Enums;
@@ -25,21 +24,40 @@ namespace DataAnalystBackend.Controllers
     public class DataSessionController : ControllerBase
     {
         private readonly IDataSessionService _dataSessionService;
+        private readonly IDataSessionFileService _fileService;
 
-        public DataSessionController(IDataSessionService dataSessionService)
+        public DataSessionController(IDataSessionService dataSessionService, IDataSessionFileService fileService)
         {
             _dataSessionService = dataSessionService;
+            _fileService = fileService;
         }
 
         [HttpGet]
-        [ProducesResponseType(200, Type = typeof(List<DataSession>))]
+        [ProducesResponseType(200, Type = typeof(List<DataSessionDTO>))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<List<DataSession>>> Get()
+        public async Task<ActionResult<List<DataSessionDTO>>> Get()
         {
             try
             {
-                return Ok(await _dataSessionService.GetDataSessionsAsync(User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value));
+                List<DataSession> dataSessions = await _dataSessionService.GetDataSessionsAsync(User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value);
+                List<DataSessionDTO> result = new List<DataSessionDTO>();
+                foreach (DataSession dataSession in dataSessions)
+                {
+                    DataSessionDTO dataSessionDTO = new DataSessionDTO()
+                    {
+                        CreatedAt = dataSession.CreatedAt,
+                        Id = dataSession.Id,
+                        InitialFileHasHeaders = dataSession.InitialFileHasHeaders,
+                        LastUpdatedAt = dataSession.LastUpdatedAt,
+                        Name = dataSession.Name,
+                        SchemaName = dataSession.SchemaName,
+                        UserId = dataSession.UserId,
+                        ProcessedStatus = await _fileService.GetLatestFileProcessedState(dataSession.Id)
+                    };
+                    result.Add(dataSessionDTO);
+                }
+                return Ok(result);
             }
             catch (RecordNotFoundException rNFEx)
             {
@@ -52,14 +70,26 @@ namespace DataAnalystBackend.Controllers
         }
 
         [HttpGet("GetById")]
-        [ProducesResponseType(200, Type = typeof(DataSession))]
+        [ProducesResponseType(200, Type = typeof(DataSessionDTO))]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
-        public async Task<ActionResult<DataSession>> GetById(Guid dataSessionId)
+        public async Task<ActionResult<DataSessionDTO>> GetById(Guid dataSessionId)
         {
             try
             {
-                return Ok(await _dataSessionService.GetDataSessionAsync(dataSessionId, User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value));
+                DataSession dataSession = await _dataSessionService.GetDataSessionAsync(dataSessionId, User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value);
+                DataSessionDTO dataSessionDTO = new DataSessionDTO()
+                {
+                    CreatedAt = dataSession.CreatedAt,
+                    Id = dataSession.Id,
+                    InitialFileHasHeaders = dataSession.InitialFileHasHeaders,
+                    LastUpdatedAt = dataSession.LastUpdatedAt,
+                    Name = dataSession.Name,
+                    SchemaName = dataSession.SchemaName,
+                    UserId = dataSession.UserId,
+                    ProcessedStatus = await _fileService.GetLatestFileProcessedState(dataSession.Id)
+                };
+                return Ok(dataSessionDTO);
             }
             catch (RecordNotFoundException rNFEx)
             {
@@ -139,21 +169,7 @@ namespace DataAnalystBackend.Controllers
             try
             { 
                 string userId = User.Claims.First(o => o.Type == ClaimTypes.NameIdentifier).Value;
-                await _dataSessionService.StartGeneration<string>(startGenerationDto.Filename, dataSessionId, userId, async (model, ea, serviceProvider) =>
-                {
-                    using var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope();
-                    var scopedService = scope.ServiceProvider.GetRequiredService<RpcClient>();
-                    var scopedConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
-                    await scopedService.StartAsync<GenerateNameResponseMessage>(async (dataNameModel, dataNameEA, dataNameServiceProvider) =>
-                    {
-                        using var scope = ServiceProviderAccessor.RootServiceProvider.CreateScope();
-                        var scopedService = scope.ServiceProvider.GetRequiredService<IDataSessionService>();
-                        var scopedHubContext = scope.ServiceProvider.GetRequiredService<IHubContext<DataSessionHub>>();
-                        await scopedService.UpdateDataSession(dataSessionId, dataNameModel.DataSessionName, userId);
-                        await scopedHubContext.Clients.Group(userId).SendAsync("RecieveDataSessionName", dataSessionId, dataNameModel.DataSessionName);
-                    });
-                    await scopedService.CallAsync(new Message<GenerateNameMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new GenerateNameMessage() { DataSessionId = dataSessionId, UserId = userId } }, $"{scopedConfig.GetValue<string>("RabbitMQ:Prefix")}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}");
-                }, startGenerationDto.InitialFileHasHeaders);
+                await _dataSessionService.StartGeneration<string>(startGenerationDto.Filename, dataSessionId, userId, startGenerationDto.InitialFileHasHeaders);
                 return Ok();
             }
             catch (RecordNotFoundException rNFEx)

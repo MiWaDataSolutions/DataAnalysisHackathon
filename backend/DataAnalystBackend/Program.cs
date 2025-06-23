@@ -1,7 +1,10 @@
+using DataAnalystBackend.Consumers;
 using DataAnalystBackend.Hubs;
 using DataAnalystBackend.Shared.DataAccess;
 using DataAnalystBackend.Shared.DataAccess.Models;
+using DataAnalystBackend.Shared.Interfaces;
 using DataAnalystBackend.Shared.Interfaces.Services;
+using DataAnalystBackend.Shared.MessagingProviders;
 using DataAnalystBackend.Shared.Services;
 using DataAnalystBackend.Shared.Services.RPC;
 using Microsoft.AspNetCore.Authentication.Cookies; // Added
@@ -31,6 +34,10 @@ builder.Services.AddCors(options =>
                           .WithExposedHeaders(new[] { "Location", "Upload-Offset", "Upload-Length" });
                       });
 });
+
+builder.Services.AddHostedService<DataSessionStartResponseConsumer>();
+builder.Services.AddHostedService<DataSessionNameResponseConsumer>();
+builder.Services.AddHostedService<DataProcessResponseConsumer>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -183,6 +190,9 @@ builder.Services.AddSignalR();
 
 // Add Services
 builder.Services.AddTransient<IDataSessionService, DataSessionService>();
+builder.Services.AddTransient<IMessagingProvider, RabbitMQMessagingProvider>();
+builder.Services.AddTransient<IGraphingDataService, GraphingDataService>();
+builder.Services.AddTransient<IDataSessionFileService, DataSessionFileService>();
 builder.Services.AddScoped<RpcClient>();
 
 var app = builder.Build();

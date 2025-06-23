@@ -8,5 +8,6 @@ namespace DataAnalystBackend.Shared.MessagingProviders.Models.Enums
     {
         DataSessionGenerateName = 0,
         DataSessionStartSession = 1,
+        DataSessionDataProcess = 2,
     }
 }

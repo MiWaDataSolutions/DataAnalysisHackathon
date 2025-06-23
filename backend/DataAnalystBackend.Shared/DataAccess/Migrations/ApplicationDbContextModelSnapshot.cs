@@ -48,7 +48,7 @@ namespace DataAnalysisHackathonBackend.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DataSessions", (string)null);
+                    b.ToTable("DataSessions");
                 });
 
             modelBuilder.Entity("DataAnalystBackend.Shared.DataAccess.Models.DataSessionFile", b =>
@@ -71,8 +71,8 @@ namespace DataAnalysisHackathonBackend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<bool>("Processed")
-                        .HasColumnType("boolean");
+                    b.Property<int>("ProcessedStatus")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -81,7 +81,7 @@ namespace DataAnalysisHackathonBackend.Migrations
 
                     b.HasIndex("DataSessionId");
 
-                    b.ToTable("DataSessionsFiles", (string)null);
+                    b.ToTable("DataSessionsFiles");
                 });
 
             modelBuilder.Entity("DataAnalystBackend.Shared.DataAccess.Models.User", b =>
@@ -112,7 +112,7 @@ namespace DataAnalysisHackathonBackend.Migrations
 
                     b.HasKey("GoogleId");
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("DataAnalystBackend.Shared.DataAccess.Models.DataSession", b =>

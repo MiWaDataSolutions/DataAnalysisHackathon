@@ -11,5 +11,11 @@ namespace DataAnalystBackend.Shared.MessagingProviders.Models
     {
         [JsonPropertyName("dataSessionName")]
         public string DataSessionName { get; set; }
+
+        [JsonPropertyName("dataSessionId")]
+        public Guid DataSessionId { get; set; }
+
+        [JsonPropertyName("userId")]
+        public string UserId { get; set; }
     }
 }

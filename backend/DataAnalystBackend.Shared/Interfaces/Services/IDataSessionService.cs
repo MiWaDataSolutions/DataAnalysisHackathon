@@ -15,6 +15,6 @@ namespace DataAnalystBackend.Shared.Interfaces.Services
 
         Task UpdateDataSession(Guid dataSessionId, string dataSessionName, string userId);
 
-        Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, Func<TModel, BasicDeliverEventArgs, IServiceProvider, Task> consumeMethod, bool initialFileHasHeaders);
+        Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, bool initialFileHasHeaders);
     }
 }

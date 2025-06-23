@@ -16,12 +16,15 @@
 import * as runtime from '../runtime';
 import type {
   DataSession,
+  DataSessionDTO,
   ProblemDetails,
   StartGenerationDto,
 } from '../models/index';
 import {
     DataSessionFromJSON,
     DataSessionToJSON,
+    DataSessionDTOFromJSON,
+    DataSessionDTOToJSON,
     ProblemDetailsFromJSON,
     ProblemDetailsToJSON,
     StartGenerationDtoFromJSON,
@@ -92,7 +95,7 @@ export class DataSessionApi extends runtime.BaseAPI {
 
     /**
      */
-    async apiDataSessionGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DataSession>>> {
+    async apiDataSessionGetRaw(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<DataSessionDTO>>> {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
@@ -112,19 +115,19 @@ export class DataSessionApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DataSessionFromJSON));
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(DataSessionDTOFromJSON));
     }
 
     /**
      */
-    async apiDataSessionGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DataSession>> {
+    async apiDataSessionGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<DataSessionDTO>> {
         const response = await this.apiDataSessionGetRaw(initOverrides);
         return await response.value();
     }
 
     /**
      */
-    async apiDataSessionGetByIdGetRaw(requestParameters: ApiDataSessionGetByIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DataSession>> {
+    async apiDataSessionGetByIdGetRaw(requestParameters: ApiDataSessionGetByIdGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<DataSessionDTO>> {
         const queryParameters: any = {};
 
         if (requestParameters['dataSessionId'] != null) {
@@ -148,12 +151,12 @@ export class DataSessionApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
-        return new runtime.JSONApiResponse(response, (jsonValue) => DataSessionFromJSON(jsonValue));
+        return new runtime.JSONApiResponse(response, (jsonValue) => DataSessionDTOFromJSON(jsonValue));
     }
 
     /**
      */
-    async apiDataSessionGetByIdGet(requestParameters: ApiDataSessionGetByIdGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DataSession> {
+    async apiDataSessionGetByIdGet(requestParameters: ApiDataSessionGetByIdGetRequest = {}, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<DataSessionDTO> {
         const response = await this.apiDataSessionGetByIdGetRaw(requestParameters, initOverrides);
         return await response.value();
     }

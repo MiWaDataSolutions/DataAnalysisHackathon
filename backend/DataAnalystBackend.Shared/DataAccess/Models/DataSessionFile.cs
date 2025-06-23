@@ -1,4 +1,6 @@
-﻿namespace DataAnalystBackend.Shared.DataAccess.Models
+﻿using DataAnalystBackend.Shared.DataAccess.Enums;
+
+namespace DataAnalystBackend.Shared.DataAccess.Models
 {
     public class DataSessionFile
     {
@@ -16,6 +18,6 @@
 
         public DataSession DataSession { get; set; }
 
-        public bool Processed { get; set; }
+        public DataFileSessionStatus ProcessedStatus { get; set; }
     }
 }

@@ -68,7 +68,7 @@ namespace DataAnalystBackend.MessageProcessorService.MessageQueueHandlers
 
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            Message<GenerateNameMessage> deserializedMessage = JsonSerializer.Deserialize<Message<GenerateNameMessage>>(message);
+            Message<GeneralAgentProcessingRequest> deserializedMessage = JsonSerializer.Deserialize<Message<GeneralAgentProcessingRequest>>(message);
 
             var request = new
             {

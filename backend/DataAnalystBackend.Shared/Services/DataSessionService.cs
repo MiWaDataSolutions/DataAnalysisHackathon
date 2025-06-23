@@ -18,15 +18,15 @@ namespace DataAnalystBackend.Shared.Services
     {
         private readonly ApplicationDbContext _context;
         private readonly string _defaultDatabaseString;
-        private readonly RpcClient _rpcClient;
-        private string _prefix;
+        private readonly IMessagingProvider _messagingProvider;
+        private readonly IDataSessionFileService _dataSessionFileService;
 
-        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, RpcClient rpcClient)
+        public DataSessionService(ApplicationDbContext context, IConfiguration configuration, IMessagingProvider messagingProvider, IDataSessionFileService dataSessionFileService)
         {
             _context = context;
             _defaultDatabaseString = configuration.GetRequiredSection("DefaultUserDatabaseConnection").Value;
-            _rpcClient = rpcClient;
-            _prefix = configuration.GetValue<string>("RabbitMQ:Prefix");
+            _messagingProvider = messagingProvider;
+            _dataSessionFileService = dataSessionFileService;
         }
 
         public async Task<Guid> CreateDataSession(DataSession dataSession, string userId)
@@ -79,7 +79,7 @@ namespace DataAnalystBackend.Shared.Services
             throw new RecordNotFoundException(nameof(User), Guid.Empty);
         }
 
-        public async Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, Func<TModel, BasicDeliverEventArgs, IServiceProvider, Task> consumeMethod, bool initialFileHasHeaders)
+        public async Task StartGeneration<TModel>(string fileName, Guid dataSessionId, string userId, bool initialFileHasHeaders)
         {
             User? user = await _context.Users.SingleOrDefaultAsync(o => o.GoogleId == userId);
             if (user == null)
@@ -111,6 +111,7 @@ namespace DataAnalystBackend.Shared.Services
             if (dataSessionFile == null)
                 throw new RecordNotFoundException(nameof(DataSessionFile), dataSessionId);
 
+            await _dataSessionFileService.SetDataFileInprogress(dataSessionId);
 
             using (MemoryStream decompressedFile = new MemoryStream(GeneralUtilities.DecompressFile(dataSessionFile.FileData)))
             using (StreamReader sr = new StreamReader(decompressedFile))
@@ -151,7 +152,7 @@ namespace DataAnalystBackend.Shared.Services
                     StringBuilder row = new StringBuilder();
                     row.AppendLine("(");
                     foreach (var column in data)
-                        row.Append($"{column},");
+                        row.Append($"'{column.Replace('\'', '`')}',");
 
                     string insertStatement = $"INSERT INTO {dataSession.SchemaName}.bronze VALUES{row.ToString().TrimEnd(',')})";
                     await DatabaseUtilities.ExecuteSqlOnOtherDatabaseAsync(user.UserDatabaseConnectionString, insertStatement);
@@ -159,9 +160,7 @@ namespace DataAnalystBackend.Shared.Services
                     rowNumber++;
                 }
             }
-
-            await _rpcClient.StartAsync(consumeMethod);
-            await _rpcClient.CallAsync(new Message<StartDataSessionMessage>() { MessageType = MessageType.DataSessionGenerateName, Data = new StartDataSessionMessage() { DataSessionId = dataSessionId, UserId = userId, DataSessionSchema = dataSession.SchemaName, UserConnString = user.UserDatabaseConnectionString.Replace("localhost", "host.docker.internal") } }, $"{_prefix}-{IMessagingProvider.DATA_SESSION_START}");
+            await _messagingProvider.PublishMessageAsync(new Message<StartDataSessionMessage>() { MessageType = MessageType.DataSessionStartSession, Data = new StartDataSessionMessage() { DataSessionId = dataSessionId, UserId = userId, DataSessionSchema = dataSession.SchemaName, UserConnString = user.UserDatabaseConnectionString.Replace("localhost", "host.docker.internal") } });
         }
 
         public async Task UpdateDataSession(Guid dataSessionId, string dataSessionName, string userId)

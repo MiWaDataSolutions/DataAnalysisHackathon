@@ -1,9 +1,14 @@
 apis/AuthApi.ts
 apis/DataSessionApi.ts
+apis/GraphingApi.ts
 apis/UsersApi.ts
 apis/index.ts
 index.ts
+models/DataFileSessionStatus.ts
 models/DataSession.ts
+models/DataSessionDTO.ts
+models/GraphModel.ts
+models/KPIModel.ts
 models/MeDto.ts
 models/MeUserDto.ts
 models/ProblemDetails.ts

@@ -45,13 +45,16 @@ namespace DataAnalystBackend.Shared.MessagingProviders
                 case MessageType.DataSessionGenerateName:
                     queueName = $"{_prefix}-{IMessagingProvider.DATA_SESSION_GENERATE_NAME}";
                     break;
+                case MessageType.DataSessionDataProcess:
+                    queueName = $"{_prefix}-{IMessagingProvider.DATA_SESSION_DATA_PROCESS}";
+                    break;
                 default:
                     throw new MessageProviderException($"Message Type {message.MessageType} not supported");
             }
 
             await channel.QueueDeclareAsync(queue: queueName, exclusive: false, autoDelete: false);
 
-            string messageJson = JsonSerializer.Serialize(message);
+            string messageJson = JsonSerializer.Serialize(message.Data);
             byte[] messageBytes = Encoding.UTF8.GetBytes(messageJson);
 
             await channel.BasicPublishAsync(exchange: string.Empty, routingKey: queueName, body: messageBytes);
