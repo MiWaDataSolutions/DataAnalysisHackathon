@@ -1,0 +1,9 @@
+config:
+  gcp:project: data-analysis-hackathon
+  insightful:DATABASE_PASSWORD:
+    secure: AAABANVBG1h15SZ1IijZ/L+eT6k4AtWEPeOYzPo9nzSXFUPUJGkT893B8qOqxw==
+  insightful:RABBITMQ_PASSWORD:
+    secure: AAABAPOXoOY0WC/2EscGSOR8CZbPKp600l8f9n34g+hFWQsy9npxHpguv4CkMw==
+  insightful:RABBITMQ_USER: rabbit
+  insightful:GoogleClientSecret:
+    secure: AAABABznXYj95DiaggvjIfC1tVHBK+mMRyJn9wnY66/js2JfjEw7BQH9XpbRPNilSrZ+6kLkGl6XaQJWe+nCcqpTCw==

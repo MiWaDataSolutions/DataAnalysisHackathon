@@ -45,7 +45,7 @@ export const DataSession = () => {
     const [dataSessionName, setDataSessionName] = useState<string>("Name Will Generate After First File is Uploaded");
     const { dataSessionId } = useParams();
     const { user } = useAuth();
-    const { SignalRContext } = useSignalRWrapper();
+    const { useSignalREffect } = useSignalRWrapper();
     const chartConfig = {
         desktop: {
             label: "Desktop",
@@ -85,7 +85,7 @@ export const DataSession = () => {
         setDataSessionName(dataSessionData?.name ?? "Name Will Generate After First File is Uploaded");
     }, [dataSessionData]);
 
-    SignalRContext.useSignalREffect("RecieveDataSessionName", (receivedDataSessionId, name) => {
+    useSignalREffect("RecieveDataSessionName", (receivedDataSessionId, name) => {
         console.log(`receivedDataSessionId`, receivedDataSessionId);
         console.log(`receivedDataSessionId`, receivedDataSessionId);
         if (receivedDataSessionId == dataSessionId) {
@@ -94,7 +94,7 @@ export const DataSession = () => {
         }
     }, []);
     
-    SignalRContext.useSignalREffect("RecieveDataSessionDataGenerationComplete", (receivedDataSessionId) => {
+    useSignalREffect("RecieveDataSessionDataGenerationComplete", (receivedDataSessionId) => {
         console.log(`RecieveDataSessionDataGenerationComplete`, receivedDataSessionId);
         if (receivedDataSessionId == dataSessionId) {
             console.log(`hit`);

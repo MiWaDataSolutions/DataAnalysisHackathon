@@ -17,16 +17,18 @@ namespace DataAnalystBackend.Consumers
         private IChannel? _channel;
         private readonly IHubContext<DataSessionHub> _hubContext;
         private readonly string _prefix;
+        private readonly string _url;
 
         public DataProcessResponseConsumer(IHubContext<DataSessionHub> hubContext, IConfiguration configuration)
         {
             _hubContext = hubContext;
             _prefix = configuration.GetRequiredSection("RabbitMQ:Prefix").Value;
+            _url = configuration.GetRequiredSection("RabbitMQ:HostName").Value;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            var factory = new ConnectionFactory() { HostName = "localhost" }; // Set your RabbitMQ host
+            var factory = new ConnectionFactory() { Uri = new Uri(_url) }; // Set your RabbitMQ host
             _connection = await factory.CreateConnectionAsync();
             _channel = await _connection.CreateChannelAsync();
             await _channel.QueueDeclareAsync(queue: $"{_prefix}-{IMessagingProvider.DATA_SESSION_DATA_PROCESS}_response", durable: false, exclusive: false, autoDelete: false, arguments: null);

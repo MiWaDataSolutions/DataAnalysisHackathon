@@ -20,6 +20,9 @@ using tusdotnet.Models; // Added for ClaimTypes
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddEnvironmentVariables();
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
+
 // Add services to the container.
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -27,7 +30,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("https://localhost:5173")
+                          policy.WithOrigins("https://localhost:5173", "https://insightful.michaelrademeyer.dev")
                           .AllowAnyHeader()
                           .AllowAnyMethod()
                           .AllowCredentials()
@@ -220,7 +223,7 @@ app.MapTus("/files", async httpContext => new()
     // Return null to disable tusdotnet for the current request.
 
     // Where to store data?
-    Store = new tusdotnet.Stores.TusDiskStore(@"C:\tusfiles\"),
+    Store = new tusdotnet.Stores.TusDiskStore(@"/tusfiles/"),
     Events = new()
     {
         // What to do when file is completely uploaded?
@@ -238,7 +241,7 @@ app.MapTus("/files", async httpContext => new()
 app.MapControllers();
 app.MapHub<DataSessionHub>("/data-session-hub");
 
-
+UpdateDatabase(app);
 await app.RunAsync();
 
 async Task ProcessFile(Stream content, Dictionary<string, Metadata> metadata, ApplicationDbContext db)
@@ -286,6 +289,21 @@ async Task ProcessFile(Stream content, Dictionary<string, Metadata> metadata, Ap
     await db.DataSessionsFiles.AddAsync(dataSessionFile);
     await db.SaveChangesAsync();
 }
+
+static void UpdateDatabase(IApplicationBuilder app)
+{
+    using (var serviceScope = app.ApplicationServices
+        .GetRequiredService<IServiceScopeFactory>()
+        .CreateScope())
+    {
+        using (var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
+        {
+            if (context.Database.GetPendingMigrations().Count() > 1)
+                context.Database.Migrate();
+        }
+    }
+}
+
 public static class ServiceProviderAccessor
 {
     public static IServiceProvider RootServiceProvider { get; set; }
