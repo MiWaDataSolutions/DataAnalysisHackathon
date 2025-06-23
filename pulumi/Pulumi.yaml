@@ -1,0 +1,7 @@
+name: insightful
+description: The IaC project to deploy and manage Insightful
+runtime: dotnet
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: gcp-csharp

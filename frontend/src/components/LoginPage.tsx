@@ -18,8 +18,17 @@ const LoginPage: React.FC = () => {
 
   return (
     <div>
+      
+      <h1>Insightful</h1>
+      <h2>Welcome to the App!</h2>
+      
+      <p>
+        This project is for submission for the (<a href='https://googlecloudmultiagents.devpost.com/'>Google ADK Hackathon</a>)
+        What this project does is it accepts a CSV file, analyzes the data and generates a dashboard with insights on the data.
+      </p>
       <h2>Login Page</h2>
       <p>Please log in to continue.</p>
+      
       <button
         onClick={handleLogin}
         style={{

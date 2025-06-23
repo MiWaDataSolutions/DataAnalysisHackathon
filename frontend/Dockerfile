@@ -34,5 +34,5 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # RUN rm -rf /etc/nginx/conf.d/default.conf
 # Copy built assets
 COPY --from=prerelease /usr/src/app/dist /usr/share/nginx/html
-EXPOSE 80
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
