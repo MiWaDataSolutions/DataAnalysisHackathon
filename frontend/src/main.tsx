@@ -12,7 +12,6 @@ import { DrawerProvider } from './providers/drawer-provider.tsx';
 import { CustomDrawer } from './components/custom-components/drawer.tsx';
 import { DataSession } from './pages/DataSession.tsx';
 import { Toaster } from './components/ui/sonner.tsx';
-import { createSignalRContext } from "react-signalr/signalr";
 import { SignalRProviderWrapper } from './providers/signalr.provider.tsx';
 
 const queryClient = new QueryClient();
